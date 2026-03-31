@@ -1,0 +1,5 @@
+{
+  "name": "OS Sync Visualizer",
+  "description": "An interactive platform to visualize Operating System synchronization algorithms, race conditions, and deadlocks.",
+  "requestFramePermissions": []
+}
