@@ -2,9 +2,18 @@ export type AlgorithmType =
   | 'mutex' 
   | 'semaphore' 
   | 'peterson' 
+  | 'dekker'
+  | 'bakery'
+  | 'monitor'
+  | 'condition'
   | 'prodcons' 
   | 'dining' 
-  | 'rw';
+  | 'rw'
+  | 'tas'
+  | 'cas'
+  | 'swap'
+  | 'faa'
+  | 'llsc';
 
 export type ProcessState = 'idle' | 'requesting' | 'waiting' | 'running' | 'finished';
 
@@ -44,6 +53,19 @@ export interface SimulationState {
     completedCount: number;
     csEntries: number;
   };
+  algoSpecificState?: {
+    turn?: number;
+    flag?: boolean[];
+    readcount?: number;
+    mutex?: number;
+    wrt?: number;
+    empty?: number;
+    full?: number;
+    buffer?: number[];
+    bufferSize?: number;
+    forks?: boolean[]; // true if fork is available
+    philosopherStates?: ('thinking' | 'hungry' | 'eating')[];
+  };
 }
 
 export interface ConceptData {
@@ -52,5 +74,7 @@ export interface ConceptData {
   subtitle: string;
   description: string;
   pseudocode: string;
+  category: 'software' | 'hardware' | 'problem' | 'mechanism';
   properties: { label: string; value: string }[];
+  codeTemplates?: Record<string, string>;
 }

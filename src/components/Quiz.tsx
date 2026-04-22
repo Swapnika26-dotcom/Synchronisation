@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { QUIZ_QUESTIONS } from '../data/quizQuestions';
+import { QUIZ_QUESTIONS, QuizLevel } from '../data/quizQuestions';
 import { cn } from '../lib/utils';
 import { 
   Trophy, 
@@ -12,24 +12,30 @@ import {
   BrainCircuit,
   Award,
   FastForward,
-  Info
+  Info,
+  ChevronLeft,
+  Zap,
+  Brain,
+  Shield
 } from 'lucide-react';
 
 import { Terminal } from './Terminal';
 
 export function Quiz() {
+  const [level, setLevel] = useState<QuizLevel | null>(null);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const filteredQuestions = level ? QUIZ_QUESTIONS.filter(q => q.level === level) : [];
 
   const handleAnswer = (optionIdx: number) => {
     if (selectedOption !== null) return;
 
     setSelectedOption(optionIdx);
-    const correct = optionIdx === QUIZ_QUESTIONS[currentIdx].answer;
+    const correct = optionIdx === filteredQuestions[currentIdx].answer;
     setIsCorrect(correct);
     
     if (correct) {
@@ -39,7 +45,7 @@ export function Quiz() {
 
   const nextQuestion = async () => {
     const nextIdx = currentIdx + 1;
-    if (nextIdx < QUIZ_QUESTIONS.length) {
+    if (nextIdx < filteredQuestions.length) {
       setCurrentIdx(nextIdx);
       setSelectedOption(null);
       setIsCorrect(null);
@@ -50,7 +56,7 @@ export function Quiz() {
 
   const skipQuestion = async () => {
     const nextIdx = currentIdx + 1;
-    if (nextIdx < QUIZ_QUESTIONS.length) {
+    if (nextIdx < filteredQuestions.length) {
       setCurrentIdx(nextIdx);
       setSelectedOption(null);
       setIsCorrect(null);
@@ -59,37 +65,75 @@ export function Quiz() {
     }
   };
 
-  const resetQuiz = async () => {
+  const resetQuiz = () => {
     setCurrentIdx(0);
     setScore(0);
     setShowResult(false);
     setSelectedOption(null);
     setIsCorrect(null);
+    setLevel(null);
   };
 
+  if (!level) {
+    const levels: { id: QuizLevel; title: string, desc: string, icon: any, color: string }[] = [
+      { id: 'beginner', title: 'Beginner', desc: 'Fundamentals, race conditions, and basic definitions.', icon: Zap, color: 'bg-green-500' },
+      { id: 'intermediate', title: 'Intermediate', desc: 'Peterson, Semaphores, and classic problem logic.', icon: Brain, color: 'bg-blue-500' },
+      { id: 'advanced', title: 'Advanced', desc: 'Hardware sync, deadlock conditions, and monitor patterns.', icon: Shield, color: 'bg-primary' },
+    ];
+
+    return (
+      <div className="space-y-12">
+        <div className="max-w-3xl space-y-4">
+          <h2 className="text-5xl font-black tracking-tighter uppercase leading-[0.8]">
+            Final <br />
+            <span className="text-primary italic tracking-normal lowercase font-serif italic text-6xl">Evaluation</span>
+          </h2>
+          <p className="text-lg text-muted-foreground font-medium max-w-xl">
+            Select your rank. Each level tests progressively deeper understanding of OS synchronization primitives.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-20">
+          {levels.map((l) => (
+            <button
+              key={l.id}
+              onClick={() => setLevel(l.id)}
+              className="group p-8 bg-card border border-border rounded-[2.5rem] hover:border-primary transition-all text-left flex flex-col gap-6"
+            >
+              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg", l.color)}>
+                <l.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black uppercase tracking-tight mb-2">{l.title}</h3>
+                <p className="text-sm text-muted-foreground font-medium leading-relaxed">{l.desc}</p>
+              </div>
+              <div className="mt-auto pt-6 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Initialize Test</span>
+                <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const handleProgramRun = (code: string) => {
-    // Basic logic: compare with expectedOutput for learning purposes
-    const expected = QUIZ_QUESTIONS[currentIdx].expectedOutput;
+    const expected = filteredQuestions[currentIdx].expectedOutput;
     const isActuallyCorrect = code.toLowerCase().includes(expected?.toLowerCase() || "");
     
-    setSelectedOption(99); // dummy to block double click
+    setSelectedOption(99); 
     setIsCorrect(isActuallyCorrect);
     if (isActuallyCorrect) {
-      setScore(prev => prev + 5); // Coding challenges worth more
+      setScore(prev => prev + 5);
     }
   };
 
-  if (loading) return (
-     <div className="min-h-[400px] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-     </div>
-  );
-
-  const question = QUIZ_QUESTIONS[currentIdx];
-  const progress = ((currentIdx + 1) / QUIZ_QUESTIONS.length) * 100;
+  const question = filteredQuestions[currentIdx];
+  const progress = ((currentIdx + 1) / filteredQuestions.length) * 100;
 
   if (showResult) {
-    const perfectScore = QUIZ_QUESTIONS.length * 2;
+    const perfectScore = filteredQuestions.length * 2;
     const percentage = (score / perfectScore) * 100;
 
     return (
@@ -98,14 +142,14 @@ export function Quiz() {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-2xl mx-auto py-12"
       >
-        <div className="bg-card border border-border rounded-3xl p-10 text-center shadow-xl space-y-8">
+        <div className="bg-card border border-border rounded-[2.5rem] p-10 text-center shadow-xl space-y-8">
           <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <Trophy className="w-12 h-12 text-primary" />
           </div>
           
           <div>
-            <h2 className="text-4xl font-extrabold tracking-tight mb-2">Quiz Completed!</h2>
-            <p className="text-muted-foreground">You have effectively tested your knowledge on synchronization.</p>
+            <h2 className="text-4xl font-extrabold tracking-tight mb-2">Examination Result</h2>
+            <p className="text-muted-foreground uppercase tracking-widest text-[10px] font-black">Level: <span className="text-primary">{level}</span></p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -119,26 +163,12 @@ export function Quiz() {
             </div>
           </div>
 
-          <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20">
-            <h3 className="font-bold flex items-center justify-center gap-2 mb-2">
-              <Award className="w-5 h-5 text-primary" />
-              {percentage >= 80 ? "Sync Expert!" : percentage >= 50 ? "Sync Adept" : "Sync Novice"}
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {percentage >= 80 
-                ? "Outstanding! You demonstrate deep understanding of process synchronization primitives and deadlock problems." 
-                : percentage >= 50 
-                ? "Good effort. You have a solid base, but there's room to master the nuances of synchronization." 
-                : "Continuous learning is key. Revisiting the 'Concepts' section might help strengthen your grasp on synchronization."}
-            </p>
-          </div>
-
           <button
             onClick={resetQuiz}
             className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
           >
             <RotateCcw className="w-5 h-5" />
-            Try Again
+            Finish & Return
           </button>
         </div>
       </motion.div>
@@ -149,12 +179,18 @@ export function Quiz() {
     <div className="max-w-3xl mx-auto py-8 lg:py-12">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setLevel(null)}
+            className="w-10 h-10 bg-secondary border border-border rounded-xl flex items-center justify-center hover:bg-accent transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+          </button>
           <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
             <GraduationCap className="w-6 h-6 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight underline decoration-primary/30 decoration-4 underline-offset-4">Knowledge Check</h1>
-            <p className="text-xs text-muted-foreground font-mono">Q: {currentIdx + 1} of {QUIZ_QUESTIONS.length}</p>
+            <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">Q: {currentIdx + 1} of {filteredQuestions.length} • {level}</p>
           </div>
         </div>
         <div className="flex items-center gap-4">

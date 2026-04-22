@@ -1,6 +1,6 @@
 import { 
   ShieldAlert, 
-  Lock, 
+  Lock as LockIcon, 
   RotateCcw, 
   Hourglass, 
   Ban, 
@@ -16,7 +16,8 @@ import {
   Activity,
   Terminal,
   Printer,
-  Wallet
+  Wallet,
+  Shield
 } from 'lucide-react';
 
 export interface TheoryConcept {
@@ -37,30 +38,38 @@ export interface FundamentalData {
 
 export const SYNCHRONIZATION_FUNDAMENTALS: FundamentalData[] = [
   {
-    id: 'definition',
-    title: 'Definition of Synchronization',
-    content: 'Synchronization is the process of coordinating the execution of multiple processes or threads to ensure that shared resources are accessed in a controlled and predictable manner.',
+    id: 'intro-definition',
+    title: 'What is Synchronization?',
+    content: 'Process Synchronization is a mechanism that coordinates the execution of processes that share data. It ensures that multiple processes do not access the same shared resource simultaneously in a way that leads to data corruption.',
     icon: Activity,
     subsections: [
       {
-        title: 'In simple terms',
-        content: '👉 It makes sure that only one process uses a shared resource at a time when required, preventing conflicts.'
+        title: 'The Core Objective',
+        content: 'To prevent data inconsistency and ensure that co-operating processes execute in a predictable, orderly fashion.',
+        list: [
+          '👉 Example: Two people editing the same Word document via cloud - sync ensures one person\'s "Save" doesn\'t erase the other\'s changes.'
+        ]
+      },
+      {
+        title: 'Cooperating Processes',
+        content: 'Processes that can affect or be affected by other processes. They must coordinate to share data safely.',
+        list: [
+          '👉 Example: A producer process generating data and a consumer process using it must wait for each other.'
+        ]
       }
     ]
   },
   {
-    id: 'need',
-    title: 'Why Synchronization is Needed',
-    content: 'In modern systems, multiple processes run concurrently and often share memory, files, variables, and devices (printer, disk, etc.).',
-    icon: Cpu,
+    id: 'definition',
+    title: 'Why Synchronization?',
+    content: 'Modern Operating Systems run multiple processes concurrently. These processes share resources like memory, files, and printers. Without careful coordination, this shared access leads to absolute chaos.',
+    icon: Lightbulb,
     subsections: [
       {
-        title: 'Potential Problems',
-        content: 'If multiple processes try to access or modify the same data at the same time, it leads to problems such as:',
+        title: 'Concurrent Execution',
+        content: 'The CPU rapidly switches between processes, creating the appearance of parallel execution.',
         list: [
-          'Race Condition: Output depends on sequence or timing.',
-          'Data Inconsistency: Corrupted or partially updated data.',
-          'System Crashes: Deadlocks or starvation.'
+          '👉 Example: Running a browser, a music player, and a code editor at once. The OS syncs resources like your sound card so only one plays audio properly.'
         ]
       }
     ]
@@ -68,18 +77,18 @@ export const SYNCHRONIZATION_FUNDAMENTALS: FundamentalData[] = [
   {
     id: 'race-condition-detailed',
     title: 'Race Condition',
-    content: 'A race condition occurs when the output depends on the sequence or timing of process execution.',
+    content: 'A race condition occurs when multiple processes access shared data simultaneously, and the final outcome depends on the specific order of execution.',
     icon: AlertTriangle,
     subsections: [
       {
-        title: 'The Counter Problem Example',
-        content: 'Suppose two processes increment a shared variable x = 5.',
+        title: 'The Interleaving Problem',
+        content: 'Even a simple "counter++" can fail if interleaved. It compiles to three instructions: Load, Add, Store.',
         list: [
-          'Process A reads x → 5',
-          'Process B reads x → 5',
-          'A increments → 6',
-          'B increments → 6',
-          '👉 Final value = 6 (wrong). Correct value should be = 7.'
+          'Example: Two ATMs withdrawing $50 from a $60 account.',
+          'P1 checks: $60 available.',
+          'P2 checks: $60 available.',
+          'P1 withdraws: balance becomes $10.',
+          'P2 withdraws: balance becomes $10 (but total $100 was taken!).'
         ]
       }
     ]
@@ -87,57 +96,48 @@ export const SYNCHRONIZATION_FUNDAMENTALS: FundamentalData[] = [
   {
     id: 'critical-section-problem',
     title: 'Critical Section Problem',
-    content: 'A critical section is a part of the program where shared resources are accessed.',
-    icon: Lock,
+    content: 'The Critical Section (CS) is the segment of code where a process accesses shared resources.',
+    icon: LockIcon,
     subsections: [
       {
-        title: 'Structure of a Process',
-        content: 'Processes typically follow this flow:',
+        title: 'Process Structure',
+        content: 'A robust solution must manage these phases:',
         list: [
-          'Entry Section – Request permission',
-          'Critical Section – Access shared resource',
-          'Exit Section – Release permission',
-          'Remainder Section – Other code'
-        ]
-      },
-      {
-        title: 'Goal',
-        content: 'Ensure that only one process is inside the critical section at any time.'
-      }
-    ]
-  },
-  {
-    id: 'requirements',
-    title: 'Requirements for Synchronization',
-    content: 'To solve synchronization issues, a correct solution must satisfy three core conditions:',
-    icon: Trophy,
-    subsections: [
-      {
-        title: 'Core Conditions',
-        content: '',
-        list: [
-          'Mutual Exclusion: Only one process inside at a time.',
-          'Progress: If none are inside, decision to enter must not wait indefinitely.',
-          'Bounded Waiting: A process should not wait forever (no starvation).'
+          'Entry Section: Requesting a key.',
+          'Critical Section: Being inside the room.',
+          'Exit Section: Returning the key.',
+          '👉 Example: A shared printer - the code sending data to the printer is the Critical Section.'
         ]
       }
     ]
   },
   {
-    id: 'real-life',
-    title: 'Real-Life Examples',
-    content: 'Process synchronization isn\'t just code—it happens all around us.',
-    icon: Users,
+    id: 'hardware-sync',
+    title: 'Hardware Synchronization',
+    content: 'Modern hardware provides atomic instructions that cannot be interrupted, ensuring atomic lock acquisition.',
+    icon: Cpu,
     subsections: [
       {
-        title: 'Printer Usage',
-        content: 'Many users send print requests, but only one printer is available. Synchronization ensures one job prints at a time while others wait in a queue.',
-        list: []
-      },
+        title: 'TestAndSet & CAS',
+        content: 'Atomic instructions that read and write memory in a single clock cycle.',
+        list: [
+          '👉 Example: A "Stop/Go" sign that changes color instantly. You cannot see it half-red and half-green.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'monitors-theory',
+    title: 'Monitors',
+    content: 'A high-level language construct that provides automatic mutual exclusion.',
+    icon: Shield,
+    subsections: [
       {
-        title: 'Bank Account',
-        content: 'If you withdraw ₹100 and deposit ₹200 simultaneously, synchronization ensures the balance updates correctly by processing them sequentially.',
-        list: []
+        title: 'Condition Variables',
+        content: 'Uses wait() and signal() to manage process queues.',
+        list: [
+          '👉 Example: A bank vault with an automated security guard. You say "I want to deposit", the guard handles the door and locks for you.'
+        ]
       }
     ]
   }
@@ -145,92 +145,51 @@ export const SYNCHRONIZATION_FUNDAMENTALS: FundamentalData[] = [
 
 export const SYNCHRONIZATION_THEORY: TheoryConcept[] = [
   {
-    id: 'race-condition',
-    title: 'Race Condition',
-    description: 'A situation where the outcome of a process depends on the specific order or timing of other uncontrollable events. It happens when multiple threads access shared data concurrently.',
-    icon: ShieldAlert,
+    id: 'mutex-lock',
+    title: 'Mutex Lock',
+    description: 'A binary synchronization primitive (binary semaphore) that ensures mutual exclusion.',
+    icon: LockIcon,
     points: [
-      'Occurs in shared memory systems',
-      'Leads to inconsistent data states',
-      'Prevented using mutual exclusion'
+      'Example: Restroom binary key.',
+      'acquire() -> take the key',
+      'release() -> return the key',
+      'One process at a time.'
     ]
   },
   {
-    id: 'critical-section',
-    title: 'Critical Section',
-    description: 'A segment of code where a process accesses common variables, updates tables, or writes files. Only one process should execute in its critical section at any time.',
-    icon: Lock,
-    points: [
-      'Mutual Exclusion: Only one process inside',
-      'Progress: Decision to enter cannot be delayed indefinitely',
-      'Bounded Waiting: Limit on number of times others enter before a waiting process'
-    ]
-  },
-  {
-    id: 'deadlock',
-    title: 'Deadlock',
-    description: 'A state where a set of processes are blocked because each process is holding a resource and waiting for another resource acquired by some other process.',
-    icon: Ban,
-    points: [
-      'Mutual Exclusion',
-      'Hold and Wait',
-      'No Preemption',
-      'Circular Wait'
-    ]
-  },
-  {
-    id: 'starvation',
-    title: 'Starvation',
-    description: 'A problem where a process is perpetually denied necessary resources to process its work. It often occurs in priority-based scheduling algorithms.',
-    icon: Hourglass,
-    points: [
-      'Lower priority processes never execute',
-      'Solved using "Aging" technique',
-      'Resource management failure'
-    ]
-  },
-  {
-    id: 'monitors',
-    title: 'Monitors',
-    description: 'A high-level synchronization construct that provides a convenient and effective mechanism for process synchronization. It encapsulates shared variables and procedures.',
-    icon: Layers,
-    points: [
-      'Implicit mutual exclusion',
-      'Condition variables for signaling',
-      'Simplified concurrency control'
-    ]
-  },
-  {
-    id: 'peterson-solution',
-    title: 'Peterson\'s Solution',
-    description: 'A classic software-based solution to the critical section problem for two processes. It uses shared flags and a turn variable.',
+    id: 'peterson-algo',
+    title: "Peterson's Algorithm",
+    description: 'A classic software solution for 2 processes using flag[2] and turn variables.',
     icon: RotateCcw,
     points: [
-      'Software-only solution',
-      'Guarantees all three requirements',
-      'Limited to two processes'
+      'Example: Two polite people at a door.',
+      'flag[i] = true (I want to go)',
+      'turn = j (You go first)',
+      'Safe from collision.'
     ]
   },
   {
-    id: 'bounded-waiting',
-    title: 'Bounded Waiting',
-    description: 'The requirement that there exists a bound on the number of times that other processes are allowed to enter their critical sections after a process has made a request.',
-    icon: Trophy,
-    points: [
-      'Prevents starvation',
-      'Ensures fairness',
-      'Critical for real-time systems'
-    ]
-  },
-  {
-    id: 'inter-process',
-    title: 'Inter-Process Communication',
-    description: 'Mechanisms that allow processes to communicate and synchronize their actions, typically via shared memory or message passing.',
+    id: 'semaphores',
+    title: 'Semaphores',
+    description: 'Integer variables accessed only via wait(P) and signal(V).',
     icon: Workflow,
     points: [
-      'Shared Memory (fast)',
-      'Message Passing (robust)',
-      'Semaphores as coordination agents'
+      'Example: Parking lot with 10 slots.',
+      'S=10 (Available slots)',
+      'wait(S) fills a slot (S--)',
+      'signal(S) frees a slot (S++)'
+    ]
+  },
+  {
+    id: 'monitors-comp',
+    title: 'Monitors',
+    description: 'High-level synchronization construct with automatic mutual exclusion.',
+    icon: Shield,
+    points: [
+      'Example: Java synchronized blocks.',
+      'Automatic locking/unlocking',
+      'Compiler-managed safety',
+      'No manual lock errors'
     ]
   }
 ];

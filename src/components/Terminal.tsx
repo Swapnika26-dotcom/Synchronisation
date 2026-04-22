@@ -6,9 +6,10 @@ interface TerminalProps {
   boilerplate: string;
   onRun: (code: string) => void;
   isLoading?: boolean;
+  title?: string;
 }
 
-export function Terminal({ boilerplate, onRun, isLoading }: TerminalProps) {
+export function Terminal({ boilerplate, onRun, isLoading, title }: TerminalProps) {
   const [code, setCode] = useState(boilerplate);
 
   useEffect(() => {
@@ -16,11 +17,11 @@ export function Terminal({ boilerplate, onRun, isLoading }: TerminalProps) {
   }, [boilerplate]);
 
   return (
-    <div className="bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden shadow-2xl font-mono">
-      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900/50 border-b border-zinc-800">
+    <div className="bg-zinc-950 rounded-[2.5rem] border border-zinc-800 overflow-hidden shadow-2xl font-mono">
+      <div className="flex items-center justify-between px-6 py-4 bg-zinc-900/50 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <TerminalIcon className="w-4 h-4 text-primary" />
-          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">OS Terminal v1.0</span>
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{title || 'OS Terminal v1.0'}</span>
         </div>
         <div className="flex gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-red-500/20" />

@@ -1,127 +1,289 @@
 import { ConceptData } from "./types";
 
 export const ALGORITHMS: ConceptData[] = [
-  {
-    id: 'mutex',
-    title: 'Mutex Lock',
-    subtitle: 'Mutual Exclusion Lock',
-    description: 'A Mutex (Mutual Exclusion) lock is a synchronization primitive that ensures only one thread or process can access a critical section at a time. It has two states: locked and unlocked.',
-    properties: [
-      { label: 'TYPE', value: 'Binary Lock' },
-      { label: 'OWNERSHIP', value: 'Thread-specific' },
-      { label: 'OVERHEAD', value: 'Very Low' }
-    ],
-    pseudocode: `acquire(mutex):
-  while (TestAndSet(mutex.locked)):
-    sleep(currentThread)
-  mutex.locked = true
-
-release(mutex):
-  mutex.locked = false
-  if mutex.waitQueue not empty:
-    next = mutex.waitQueue.dequeue()
-    wakeup(next)`
-  },
+  // SOFTWARE ALGORITHMS
   {
     id: 'peterson',
+    category: 'software',
     title: "Peterson's Algorithm",
-    subtitle: 'Software-based Synchronization for 2 Processes',
-    description: "Peterson's algorithm is a concurrent programming algorithm for mutual exclusion that allows two processes to share a single-use resource without conflict, using only shared memory for communication.",
+    subtitle: 'Classic Software Sync',
+    description: "A software solution for 2 processes using a combination of flag and turn variables.",
     properties: [
       { label: 'PROCESSES', value: 'Exactly 2' },
-      { label: 'TYPE', value: 'Software-based' },
-      { label: 'FAIRNESS', value: 'Strictly Fair' }
+      { label: 'VARS', value: 'flag[2], turn' },
+      { label: 'MECHANISM', value: 'Flag + Turn' }
     ],
     pseudocode: `// Process i
 flag[i] = true;
 turn = j;
-while (flag[j] && turn == j);
+while(flag[j] && turn == j);
 
 // critical section
 
 flag[i] = false;`
   },
   {
-    id: 'semaphore',
-    title: 'Semaphore',
-    subtitle: 'Counting Synchronization Tool',
-    description: 'A semaphore is an integer variable that is used for controlling access to a common resource by multiple processes in a concurrent system.',
+    id: 'dekker',
+    category: 'software',
+    title: "Dekker's Algorithm",
+    subtitle: 'First Correct Software Solution',
+    description: "The first documented correct software-only solution to the mutual exclusion problem.",
     properties: [
-      { label: 'TYPE', value: 'Counting' },
-      { label: 'OPERATIONS', value: 'Wait / Signal' },
-      { label: 'OVERHEAD', value: 'Low' }
+      { label: 'HISTORY', value: 'First Known' },
+      { label: 'VARS', value: 'want[2], turn' },
+      { label: 'TYPE', value: 'Busy Waiting' }
     ],
-    pseudocode: `wait(S):
-  S.value--
-  if S.value < 0:
-    block(currentProcess)
-
-signal(S):
-  S.value++
-  if S.value <= 0:
-    wakeup(S.waitQueue.dequeue())`
+    pseudocode: `flag[i] = true;
+while(flag[j]) {
+  if (turn == j) {
+    flag[i] = false;
+    while(turn == j);
+    flag[i] = true;
+  }
+}
+// CS... turn = j; flag[i] = false;`
   },
   {
-    id: 'prodcons',
-    title: 'Producer-Consumer',
-    subtitle: 'Bounded Buffer Problem',
-    description: 'The producer-consumer problem describes two processes, the producer and the consumer, who share a common, fixed-size buffer used as a queue.',
+    id: 'bakery',
+    category: 'software',
+    title: "Bakery Algorithm",
+    subtitle: 'N-Process Fairness',
+    description: "Lamport's Bakery algorithm handles N processes by assigning a ticket number to each requesting process.",
     properties: [
-      { label: 'BUFFER', value: 'Bounded' },
-      { label: 'SYNC', value: '3 Semaphores' },
-      { label: 'TYPE', value: 'Data Flow' }
+      { label: 'N-PROCESS', value: 'Supported' },
+      { label: 'LOGIC', value: 'Ticket Queue' },
+      { label: 'FAIR', value: 'First-Come' }
     ],
-    pseudocode: `producer():
-  wait(empty); wait(mutex)
-  buffer[in] = item; in = (in+1)%N
-  signal(mutex); signal(full)
+    pseudocode: `choosing[i] = true;
+number[i] = max(number[0..n-1]) + 1;
+choosing[i] = false;
+for (j = 0; j < n; j++) {
+  while (choosing[j]);
+  while (number[j] != 0 && (number[j],j) < (number[i],i));
+}
+// CS... number[i] = 0;`
+  },
 
-consumer():
-  wait(full); wait(mutex)
-  item = buffer[out]; out = (out+1)%N
-  signal(mutex); signal(empty)`
+  // MECHANISMS
+  {
+    id: 'mutex',
+    category: 'mechanism',
+    title: 'Mutex Lock',
+    subtitle: 'Binary Resource Key',
+    description: 'A tool that provides mutual exclusion by allowing only one owner to access the resource.',
+    properties: [
+      { label: 'TYPE', value: 'Binary' },
+      { label: 'MODE', value: 'Locked/Unlocked' },
+      { label: 'COST', value: 'Minimal' }
+    ],
+    pseudocode: `acquire(lock) {
+   while (lock == busy);
+   lock = busy;
+}
+release(lock) {
+   lock = free;
+}`
+  },
+  {
+    id: 'semaphore',
+    category: 'mechanism',
+    title: 'Semaphores',
+    subtitle: 'Integer Coordination Variable',
+    description: 'Kernel variables (binary or counting) that manage access to shared resource pools.',
+    properties: [
+      { label: 'TYPES', value: 'Binary/Counting' },
+      { label: 'PRIMITIVES', value: 'wait/signal' },
+      { label: 'USE', value: 'Resource Pool' }
+    ],
+    pseudocode: `wait(S) {
+  while (S <= 0);
+  S--;
+}
+signal(S) {
+  S++;
+}`
+  },
+  {
+    id: 'monitor',
+    category: 'mechanism',
+    title: 'Monitors',
+    subtitle: 'Object-Oriented Sync',
+    description: 'A high-level abstraction that provides automatic mutual exclusion for shared data objects.',
+    properties: [
+      { label: 'ABSTRACTION', value: 'High Level' },
+      { label: 'SUPPORT', value: 'Modern Languages' },
+      { label: 'SAFETY', value: 'Automatic' }
+    ],
+    pseudocode: `monitor SynchronizedObject {
+  public synchronized void operation() {
+    // only one process active here
+  }
+}`
+  },
+  {
+    id: 'condition',
+    category: 'mechanism',
+    title: 'Condition Variables',
+    subtitle: 'Event-Based Coordination',
+    description: 'Allows processes to wait for specific conditions without holding onto busy-waiting loop cycles.',
+    properties: [
+      { label: 'COMMANDS', value: 'wait, signal' },
+      { label: 'NATURE', value: 'Stateless' },
+      { label: 'REQUIREMENT', value: 'Mutex' }
+    ],
+    pseudocode: `lock(mutex);
+while (!condition) cond.wait(mutex);
+// do work
+cond.signal();
+unlock(mutex);`
+  },
+
+  // PROBLEMS
+  {
+    id: 'prodcons',
+    category: 'problem',
+    title: 'Producer-Consumer',
+    subtitle: 'Bounded Buffer Sync',
+    description: 'Coordinating processes where producers add items and consumers remove them from a shared buffer.',
+    properties: [
+      { label: 'BUFFER', value: 'Fixed Size' },
+      { label: 'VARS', value: 'full, empty, mutex' },
+      { label: 'TYPE', value: 'Cooperation' }
+    ],
+    pseudocode: `Producer:
+  wait(empty); wait(mutex);
+  buffer.add();
+  signal(mutex); signal(full);
+
+Consumer:
+  wait(full); wait(mutex);
+  buffer.remove();
+  signal(mutex); signal(empty);`
   },
   {
     id: 'dining',
+    category: 'problem',
     title: 'Dining Philosophers',
-    subtitle: 'Resource Allocation Problem',
-    description: 'Five philosophers sit at a table and spend their lives thinking and eating. They share five forks, and a philosopher needs two forks to eat.',
+    subtitle: 'Resource Conflicts',
+    description: 'Five philosophers needing two shared chopsticks to eat. A classic model for deadlock analysis.',
     properties: [
-      { label: 'RESOURCES', value: 'Shared Forks' },
-      { label: 'DEADLOCK', value: 'Possible' },
-      { label: 'STARVATION', value: 'Possible' }
+      { label: 'RESOURCE', value: 'Shared Forks' },
+      { label: 'PROBLEM', value: 'Deadlock' },
+      { label: 'STATE', value: 'Thinking/Eating' }
     ],
-    pseudocode: `philosopher(i):
-  think()
-  wait(room)
-  wait(fork[i])
-  wait(fork[(i+1)%5])
-  eat()
-  signal(fork[i])
-  signal(fork[(i+1)%5])
-  signal(room)`
+    pseudocode: `while(true) {
+  wait(chopstick[i]);
+  wait(chopstick[(i+1)%5]);
+  // eat...
+  signal(chopstick[i]);
+  signal(chopstick[(i+1)%5]);
+}`
   },
   {
     id: 'rw',
+    category: 'problem',
     title: 'Readers-Writers',
-    subtitle: 'Concurrent Access Control',
-    description: 'The readers-writers problem deals with multiple processes wanting to read or write to a shared data structure simultaneously.',
+    subtitle: 'Shared Database Access',
+    description: 'Managing access to a shared resource where readers can be concurrent but writers are exclusive.',
     properties: [
-      { label: 'READERS', value: 'Concurrent' },
-      { label: 'WRITERS', value: 'Exclusive' },
-      { label: 'PRIORITY', value: 'Configurable' }
+      { label: 'READERS', value: 'Multiple allowed' },
+      { label: 'WRITERS', value: 'Strictly One' },
+      { label: 'VAR', value: 'readcount' }
     ],
-    pseudocode: `reader():
-  wait(mutex); readCount++
-  if readCount==1: wait(db)
-  signal(mutex); readDatabase()
-  wait(mutex); readCount--
-  if readCount==0: signal(db)
-  signal(mutex)
+    pseudocode: `Reader:
+  wait(mutex); readcount++;
+  if (readcount==1) wait(wrt);
+  signal(mutex); // READ...
+  wait(mutex); readcount--;
+  if (readcount==0) signal(wrt);
+  signal(mutex);`
+  },
 
-writer():
-  wait(db); writeDatabase(); signal(db)`
-  }
+  // HARDWARE
+  {
+    id: 'tas',
+    category: 'hardware',
+    title: 'Test-and-Set',
+    subtitle: 'Atomic Bit Modification',
+    description: 'A hardware-level instruction bit check and set operation for spinlock implementation.',
+    properties: [
+      { label: 'CPU', value: 'x86, ARM' },
+      { label: 'MODE', value: 'Atomic' },
+      { label: 'VALUE', value: 'Binary' }
+    ],
+    pseudocode: `boolean TestAndSet(boolean *lock) {
+   boolean old = *lock;
+   *lock = true;
+   return old;
+}`
+  },
+  {
+    id: 'cas',
+    category: 'hardware',
+    title: 'Compare-and-Swap',
+    subtitle: 'Conditional Atomic Write',
+    description: 'Compares value and updates only if match. Foundation for lock-free data structures.',
+    properties: [
+      { label: 'TYPE', value: 'Non-blocking' },
+      { label: 'HW', value: 'Atomic-Exchange' },
+      { label: 'VARS', value: 'target, exp, new' }
+    ],
+    pseudocode: `int CAS(int *val, int exp, int next) {
+  int old = *val;
+  if (*val == exp) *val = next;
+  return old;
+}`
+  },
+  {
+    id: 'swap',
+    category: 'hardware',
+    title: 'Swap Instruction',
+    subtitle: 'Atomic Value Exchange',
+    description: 'Atomically exchanges two memory locations to manage lock states safely.',
+    properties: [
+      { label: 'ISA', value: 'XCHG' },
+      { label: 'OP', value: 'Atomic Swap' },
+      { label: 'USAGE', value: 'Spinlock' }
+    ],
+    pseudocode: `void Swap(boolean *a, boolean *b) {
+   boolean temp = *a;
+   *a = *b;
+   *b = temp;
+}`
+  },
+  {
+    id: 'faa',
+    category: 'hardware',
+    title: 'Fetch-and-Add',
+    subtitle: 'Atomic Increment',
+    description: 'Increments and returns the previous value in one atomic hardware cycle.',
+    properties: [
+      { label: 'OP', value: 'Atomic Inc' },
+      { label: 'NATURE', value: 'Cumulative' },
+      { label: 'USE', value: 'Ticket Locks' }
+    ],
+    pseudocode: `int FetchAndAdd(int *target, int inc) {
+  int old = *target;
+  *target += inc;
+  return old;
+}`
+  },
+  {
+    id: 'llsc',
+    category: 'hardware',
+    title: 'LL / SC',
+    subtitle: 'Load-Link / Store-Conditional',
+    description: 'RISC atomic primitives that monitor bus collisions to ensure exclusive writes.',
+    properties: [
+      { label: 'ARCH', value: 'RISC Primitives' },
+      { label: 'MONITOR', value: 'SC Logic' },
+      { label: 'FLOW', value: 'Retry Loop' }
+    ],
+    pseudocode: `retry:
+  LL r1, mem
+  SC r2, r1, mem
+  if(r2 == 0) goto retry`
+  },
 ];
 
 export const COLORS = [

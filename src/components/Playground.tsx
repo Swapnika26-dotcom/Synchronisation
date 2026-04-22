@@ -6,48 +6,26 @@ import {
   Terminal as TerminalIcon, 
   Settings, 
   ChevronRight, 
+  ChevronLeft,
   Variable,
   Box,
-  Binary
+  Binary,
+  Layers,
+  Cpu,
+  Star
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ALGORITHMS } from '../constants';
+import { AlgorithmType } from '../types';
+import { ALGO_CODE_TEMPLATES } from '../data/codeTemplates';
 
 type Language = 'c' | 'cpp' | 'python' | 'java';
 
 export function Playground() {
   const [language, setLanguage] = useState<Language>('c');
+  const [selectedAlgo, setSelectedAlgo] = useState<AlgorithmType | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   const [output, setOutput] = useState<string[]>([]);
-
-  const boilerplates: Record<Language, string> = {
-    c: `#include <stdio.h>\n#include <pthread.h>\n#include <semaphore.h>\n\nsem_t mutex;\n\nvoid* thread_func(void* arg) {\n    sem_wait(&mutex);\n    printf("Critical section accessed by thread %d\\n", *(int*)arg);\n    sem_post(&mutex);\n    return NULL;\n}\n\nint main() {\n    sem_init(&mutex, 0, 1);\n    // Implementation here...\n    return 0;\n}`,
-    cpp: `#include <iostream>\n#include <thread>\n#include <mutex>\n\nstd::mutex mtx;\n\nvoid print_block(int n, char c) {\n    std::lock_guard<std::mutex> locker(mtx);\n    for (int i=0; i<n; ++i) { std::cout << c; }\n    std::cout << '\\n';\n}\n\nint main() {\n    std::thread th1(print_block, 50, '*');\n    th1.join();\n    return 0;\n}`,
-    python: `import threading\nimport time\n\n# Peterson's Algorithm Simulation\nflag = [False, False]\nturn = 0\n\ndef critical_section(i):\n    print(f"Process {i} entering critical section")\n    time.sleep(1)\n    print(f"Process {i} leaving critical section")\n\ndef process(i):\n    j = 1 - i\n    flag[i] = True\n    turn = j\n    while flag[j] and turn == j: pass\n    critical_section(i)\n    flag[i] = False\n\n# Running simulation...\nthreading.Thread(target=process, args=(0,)).start()`,
-    java: `import java.util.concurrent.Semaphore;\n\npublic class SyncApp {\n    private static Semaphore sem = new Semaphore(1);\n\n    public static void main(String[] args) {\n        try {\n            sem.acquire();\n            System.out.println("Locked section");\n            sem.release();\n        } catch (InterruptedException e) {}\n    }\n}`
-  };
-
-  const quickExamples = [
-    { 
-      name: "Dining Philosophers (C)", 
-      lang: 'c' as Language, 
-      code: `#include <stdio.h>\n#include <pthread.h>\n#include <semaphore.h>\n\nsem_t forks[5];\n\nvoid* philosopher(void* num) {\n    int id = *(int*)num;\n    printf("Philosopher %d is thinking...\\n", id);\n    sem_wait(&forks[id]);\n    sem_wait(&forks[(id+1)%5]);\n    printf("Philosopher %d is eating...\\n", id);\n    sem_post(&forks[id]);\n    sem_post(&forks[(id+1)%5]);\n    return NULL;\n}`
-    },
-    { 
-      name: "Reader-Writer (Python)", 
-      lang: 'python' as Language, 
-      code: `import threading\n\nmutex = threading.Semaphore(1)\nwrt = threading.Semaphore(1)\nreadercount = 0\n\ndef reader():\n    global readercount\n    mutex.acquire()\n    readercount += 1\n    if readercount == 1: wrt.acquire()\n    mutex.release()\n    # Reading...\n    mutex.acquire()\n    readercount -= 1\n    if readercount == 0: wrt.release()\n    mutex.release()`
-    },
-    { 
-      name: "Producer-Consumer (Java)", 
-      lang: 'java' as Language, 
-      code: `import java.util.concurrent.Semaphore;\n\npublic class ProducerConsumer {\n    static Semaphore mutex = new Semaphore(1);\n    static Semaphore full = new Semaphore(0);\n    static Semaphore empty = new Semaphore(10);\n\n    static void produce() throws InterruptedException {\n        empty.acquire();\n        mutex.acquire();\n        // produce item\n        mutex.release();\n        full.release();\n    }\n}`
-    },
-    { 
-      name: "Peterson's (C++)", 
-      lang: 'cpp' as Language, 
-      code: `#include <atomic>\n#include <thread>\n\nstd::atomic<bool> flag[2] = {false, false};\nstd::atomic<int> turn = 0;\n\nvoid process(int i) {\n    int j = 1 - i;\n    flag[i] = true;\n    turn = j;\n    while (flag[j] && turn == j);\n    // critical section\n    flag[i] = false;\n}`
-    }
-  ];
 
   const handleRun = (code: string) => {
     setIsExecuting(true);
@@ -55,18 +33,18 @@ export function Playground() {
     
     // Simulate execution steps
     setTimeout(() => {
-      setOutput(prev => [...prev, `[system] Compiling ${language.toUpperCase()} source...`]);
+      setOutput(prev => [...prev, `[system] Initializing ${language.toUpperCase()} hypervisor...`]);
       setTimeout(() => {
-        setOutput(prev => [...prev, `[system] Execution started at ${new Date().toLocaleTimeString()}`]);
+        setOutput(prev => [...prev, `[system] Memory barrier initialized at 0x00FF88`]);
         setTimeout(() => {
           if (code.length < 20) {
-            setOutput(prev => [...prev, `[error] Main entry point not found or code too short.`]);
+            setOutput(prev => [...prev, `[error] Execution aborted: Invalid code structure.`]);
           } else {
-             setOutput(prev => [...prev, `[stdout] Process initialized successfully.`]);
-             setOutput(prev => [...prev, `[stdout] Synchronization primitives allocated.`]);
-             setOutput(prev => [...prev, `[stdout] Testing for race conditions...`]);
-             setOutput(prev => [...prev, `[stdout] Mutual exclusion verified.`]);
-             setOutput(prev => [...prev, `[stdout] Execution completed with status 0.`]);
+             setOutput(prev => [...prev, `[stdout] Spawning process threads...`]);
+             setOutput(prev => [...prev, `[stdout] Process P0 acquired LOCK_ID_883`]);
+             setOutput(prev => [...prev, `[stdout] Critical section entry granted.`]);
+             setOutput(prev => [...prev, `[stdout] Releasing context...`]);
+             setOutput(prev => [...prev, `[system] Simulation finished with status code 0.`]);
           }
           setIsExecuting(false);
         }, 1000);
@@ -74,180 +52,183 @@ export function Playground() {
     }, 500);
   };
 
-  const selectExample = (ex: typeof quickExamples[0]) => {
-    setLanguage(ex.lang);
-    // This is a hack because the Boilerplates are stored in a state-like way in the parent
-    // but Terminal uses the boilerplate prop. I'll just rely on the prop update in Terminal.
-  };
+  const categories = [
+    { id: 'software', title: 'Logic Sanbox', icon: Code2, subtitle: 'Test logic-based synchronization solutions.' },
+    { id: 'mechanism', title: 'Kernel Lab', icon: Cpu, subtitle: 'High-level primitives simulation.' },
+    { id: 'problem', title: 'Classic Simulator', icon: Star, subtitle: 'Solve standard coordination problems.' },
+    { id: 'hardware', title: 'Atomic Playground', icon: Binary, subtitle: 'Atomic CPU instruction simulations.' },
+  ];
 
-  return (
-    <div className="max-w-7xl mx-auto py-8 lg:py-12 space-y-12">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
-            <Code2 className="w-8 h-8 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-black tracking-tight">Synchronization <span className="text-primary underline decoration-primary/30 decoration-4">Playground</span></h1>
-            <p className="text-sm text-muted-foreground font-mono">Algorithm Laboratory & Code Sandbox</p>
+  if (selectedAlgo) {
+    const boilerplates: Record<Language, string> = {
+      c: ALGO_CODE_TEMPLATES[selectedAlgo]?.c || `#include <pthread.h>\n\n// Logic for ${selectedAlgo} in C`,
+      cpp: ALGO_CODE_TEMPLATES[selectedAlgo]?.cpp || `#include <mutex>\n\n// Logic for ${selectedAlgo} in C++`,
+      python: ALGO_CODE_TEMPLATES[selectedAlgo]?.python || `import threading\n\n# Logic for ${selectedAlgo} in Python`,
+      java: ALGO_CODE_TEMPLATES[selectedAlgo]?.java || `import java.util.concurrent.*;\n\n// Logic for ${selectedAlgo} in Java`
+    };
+
+    return (
+      <div className="space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <button 
+            onClick={() => {
+              setSelectedAlgo(null);
+              setOutput([]);
+            }}
+            className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group"
+          >
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Switch Sandbox
+          </button>
+
+          <div className="flex items-center gap-1.5 bg-secondary/50 p-1.5 rounded-2xl border border-border">
+            {(['c', 'cpp', 'python', 'java'] as Language[]).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => {
+                  setLanguage(lang);
+                  setOutput([]);
+                }}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                  language === lang 
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" 
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
+              >
+                {lang === 'cpp' ? 'C++' : lang}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-secondary/50 p-1.5 rounded-2xl border border-border">
-          {(['c', 'cpp', 'python', 'java'] as Language[]).map((lang) => (
-            <button
-              key={lang}
-              onClick={() => setLanguage(lang)}
-              className={cn(
-                "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                language === lang 
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" 
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
-              )}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
-      </div>
+        <div className="grid grid-cols-1 gap-10">
+          <div className="space-y-6">
+            <div className="bg-card border border-border rounded-[3rem] p-4 shadow-2xl relative group overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-primary/20 animate-scan pointer-events-none" />
+                <Terminal 
+                  title={`${selectedAlgo}_hypervisor_active`}
+                  boilerplate={boilerplates[language]} 
+                  onRun={handleRun}
+                  isLoading={isExecuting}
+                />
+            </div>
 
-      {/* Lab Description */}
-      <div className="bg-card border-2 border-primary/20 rounded-[2.5rem] p-8 lg:p-10 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-primary/10 transition-colors" />
-        <div className="relative z-10 flex flex-col lg:flex-row gap-10 items-start">
-          <div className="flex-1 space-y-6">
-            <h2 className="text-2xl font-black text-foreground">What is the <span className="text-primary italic">Synchronization Lab?</span></h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-muted-foreground leading-relaxed">
-              <p>
-                The Playground is a sandbox designed for you to experiment with <strong>concurrent code</strong>. 
-                Whether you're writing POSIX threads in C or using Python's threading library, this lab helps you visualize how synchronization primitives like 
-                <em> semaphores</em>, <em>mutexes</em>, and <em>condition variables</em> are implemented in real-world programming languages.
-              </p>
-              <p>
-                Use this space to test edge cases, intentionally create race conditions, or implement the classic problems discussed in the theory section. 
-                Running your code initiates a virtual OS kernel context that simulates the execution flow.
-              </p>
+            <div className="bg-zinc-950 rounded-[2.5rem] border border-zinc-800 p-10 font-mono text-sm min-h-[300px] shadow-2xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <TerminalIcon className="w-48 h-48 text-white rotate-12" />
+               </div>
+               <div className="flex items-center gap-3 mb-8 text-[11px] uppercase font-black tracking-[0.3em] text-zinc-500 border-b border-zinc-900 pb-4">
+                  <TerminalIcon className="w-4 h-4 text-primary" />
+                  Hypervisor trace stream
+               </div>
+               <div className="space-y-2 relative z-10">
+                  {output.length === 0 && !isExecuting && (
+                    <p className="text-zinc-600 italic animate-pulse">Waiting for execution context...</p>
+                  )}
+                  {output.map((line, i) => (
+                    <motion.div 
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className={cn(
+                        "flex gap-4 group",
+                        line.includes('[error]') ? "text-red-400" : 
+                        line.includes('[system]') ? "text-zinc-600" : 
+                        "text-emerald-400 font-bold"
+                      )}
+                    >
+                      <span className="opacity-10 select-none w-6 group-hover:opacity-30 transition-opacity">{(i+1).toString().padStart(2, '0')}</span>
+                      <span>{line}</span>
+                    </motion.div>
+                  ))}
+                  {isExecuting && (
+                    <div className="flex items-center gap-3 text-primary font-black py-4 animate-pulse">
+                       <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+                       ALLOCATING KERNAL SHM SEGMENTS...
+                    </div>
+                  )}
+               </div>
             </div>
           </div>
-          <div className="w-full lg:w-72 bg-secondary/40 border border-border rounded-3xl p-6 space-y-4">
-             <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary">How to use</h4>
-             <ul className="space-y-3">
-               {[
-                 "Select your preferred language",
-                 "Browse quick examples for patterns",
-                 "Modify the code in the terminal",
-                 "Execute to see the kernel output"
-               ].map((step, i) => (
-                 <li key={i} className="flex gap-3 text-xs font-bold text-muted-foreground items-center">
-                   <span className="w-5 h-5 bg-primary/20 text-primary rounded-full flex items-center justify-center shrink-0">{i+1}</span>
-                   {step}
-                 </li>
-               ))}
-             </ul>
-          </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="grid lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-3 space-y-6">
-          <div className="bg-card border border-border rounded-[2.5rem] p-1 overflow-hidden shadow-xl">
-             <Terminal 
-              boilerplate={boilerplates[language]} 
-              onRun={handleRun}
-              isLoading={isExecuting}
-             />
-          </div>
-
-          <div className="bg-zinc-950 rounded-3xl border border-zinc-800 p-8 font-mono text-sm min-h-[250px] shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-4 opacity-10">
-                <TerminalIcon className="w-32 h-32 text-white" />
-             </div>
-             <div className="flex items-center gap-2 mb-6 text-[10px] uppercase font-black tracking-widest text-zinc-500 border-b border-zinc-900 pb-3">
-                <TerminalIcon className="w-3 h-3 text-primary" />
-                Kernel stdout / stderr
-             </div>
-             <div className="space-y-2 relative z-10">
-                {output.length === 0 && !isExecuting && (
-                  <p className="text-zinc-600 italic">No execution data yet. Press 'Execute' to run your algorithm.</p>
-                )}
-                {output.map((line, i) => (
-                  <motion.div 
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className={cn(
-                      "flex gap-3",
-                      line.includes('[error]') ? "text-red-400" : 
-                      line.includes('[system]') ? "text-zinc-500" : 
-                      "text-emerald-400"
-                    )}
-                  >
-                    <span className="opacity-30 flex-shrink-0 select-none">[{i.toString().padStart(2, '0')}]</span>
-                    <span>{line}</span>
-                  </motion.div>
-                ))}
-                {isExecuting && (
-                  <div className="flex items-center gap-3 text-primary font-bold animate-pulse py-2">
-                     <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
-                     Allocation system resources...
-                  </div>
-                )}
-             </div>
-          </div>
+  return (
+    <div className="space-y-24 pb-20 animate-in fade-in duration-700">
+      <div className="max-w-4xl space-y-6">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest mb-4">
+          <TerminalIcon className="w-4 h-4" />
+          Execution Playground
         </div>
+        <h2 className="text-5xl sm:text-8xl font-black tracking-tighter leading-[0.8] uppercase">
+          Build Your <br />
+          <span className="text-primary italic tracking-normal lowercase font-serif italic text-6xl sm:text-9xl">Sandbox</span>
+        </h2>
+        <p className="text-xl text-muted-foreground font-medium max-w-2xl leading-relaxed">
+          The central hub for code experimentation. Choose an algorithm pattern to load its multi-lang boilerplate or start with a clean slate.
+        </p>
+      </div>
 
-        <div className="lg:col-span-2 space-y-6">
-           <div className="bg-card border border-border rounded-[2.5rem] p-8 space-y-6 shadow-sm">
-              <h3 className="text-lg font-black flex items-center gap-2">
-                 <Settings className="w-5 h-5 text-primary" />
-                 Environment Profile
+      <div className="space-y-32">
+        {categories.map((cat) => (
+          <div key={cat.id} className="space-y-12">
+            <div className="space-y-2">
+              <h3 className="text-2xl sm:text-4xl font-black tracking-tight uppercase group flex items-center gap-4">
+                <div className="w-2 h-10 bg-primary rounded-full group-hover:h-12 transition-all" />
+                {cat.title}
               </h3>
+              <p className="text-muted-foreground font-medium">{cat.subtitle}</p>
+            </div>
 
-              <div className="space-y-4">
-                 {[
-                   { label: "Runtime", value: language === 'python' ? "CPython 3.11" : language === 'java' ? "OpenJDK 21" : "GCC 13.2", icon: Binary },
-                   { label: "OS Interface", value: "POSIX Threads (Pthreads)", icon: Box },
-                   { label: "IPC Mechanism", value: "Shared Memory Segments", icon: Variable }
-                 ].map((item, i) => (
-                   <div key={i} className="flex items-center justify-between p-4 bg-secondary/30 rounded-2xl border border-border/50 group hover:border-primary/30 transition-all">
-                      <div className="flex items-center gap-3">
-                         <item.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{item.label}</span>
-                      </div>
-                      <span className="text-[10px] font-mono font-black text-primary">{item.value}</span>
-                   </div>
-                 ))}
-              </div>
-           </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {ALGORITHMS.filter(a => a.category === cat.id).map((algo, i) => (
+                <motion.button
+                  key={algo.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  onClick={() => {
+                    setSelectedAlgo(algo.id);
+                    setOutput([]);
+                  }}
+                  className="group relative flex flex-col items-start p-8 sm:p-10 bg-card border border-border rounded-[2.5rem] hover:border-primary transition-all text-left shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-10 transition-all pointer-events-none">
+                    <cat.icon className="w-32 h-32 text-primary" />
+                  </div>
+                  
+                  <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-10 group-hover:bg-primary transition-colors duration-500">
+                     <cat.icon className="w-8 h-8 text-foreground group-hover:text-background" />
+                  </div>
 
-           <div className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-8 space-y-4">
-              <h4 className="font-black flex items-center gap-2 text-primary uppercase tracking-widest text-xs">
-                 <Settings className="w-4 h-4" />
-                 Ready-to-Run Presets
-              </h4>
-              <p className="text-[11px] text-muted-foreground pb-2">Select a preset to load its implementation into the terminal.</p>
-              <div className="space-y-3">
-                 {quickExamples.map((ex, i) => (
-                   <button 
-                    key={i} 
-                    onClick={() => {
-                      setLanguage(ex.lang);
-                      // In a real app we'd trigger a code update.
-                      // For this simulation, we'll assume the language boilerplates are updated.
-                    }}
-                    className="w-full flex items-center justify-between p-4 bg-white/50 dark:bg-zinc-900/50 rounded-2xl border border-border/50 hover:border-primary/50 hover:bg-white dark:hover:bg-zinc-800 transition-all group"
-                   >
-                     <div className="flex items-center gap-3">
-                        <ChevronRight className="w-3 h-3 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                        <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground">{ex.name}</span>
-                     </div>
-                     <span className="text-[9px] font-black uppercase text-primary/50">{ex.lang}</span>
-                   </button>
-                 ))}
-              </div>
-           </div>
-        </div>
+                  <div className="space-y-4 relative z-10">
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary opacity-60">
+                      Project Path {i + 1}
+                    </span>
+                    <h3 className="text-2xl font-black tracking-tight leading-none group-hover:text-primary transition-colors">
+                      {algo.title}
+                    </h3>
+                    <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+                      Initialize boilerplate in C, C++, Python or Java.
+                    </p>
+                  </div>
+
+                  <div className="mt-8 pt-8 border-t border-border/50 w-full flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+                      Open Sandbox
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors group-hover:translate-x-1" />
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
