@@ -32,11 +32,11 @@ export function Concepts() {
             <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Curriculum Blueprint
           </motion.div>
-          <h2 className="text-4xl sm:text-7xl font-black tracking-tighter leading-tight">
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tighter uppercase leading-[0.9]">
             The Science of <br />
             <span className="text-primary italic">Coordination</span>
           </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl font-medium">
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl font-medium">
             Explore the mechanisms that prevent data corruption in concurrent
             systems. From hardware primitives to high-level monitor constructs.
           </p>
@@ -47,9 +47,9 @@ export function Concepts() {
       <section className="px-4 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b-4 border-foreground pb-4 sm:pb-6 gap-2">
-            <h3 className="text-3xl sm:text-4xl font-black tracking-tight uppercase">
+            <h3 className="uppercase">
               01. Theoretical{" "}
-              <span className="text-primary tracking-normal italic">
+              <span className="text-primary italic">
                 Pillars
               </span>
             </h3>
@@ -128,10 +128,10 @@ export function Concepts() {
       <section className="px-4 sm:px-6 bg-zinc-950 text-white py-16 sm:py-32 rounded-[2rem] sm:rounded-[4rem] mx-0 sm:mx-8 shadow-2xl">
         <div className="max-w-7xl mx-auto space-y-12 sm:space-y-20">
           <div className="max-w-2xl">
-            <h3 className="text-4xl sm:text-7xl font-black tracking-tighter uppercase mb-4 sm:mb-6 leading-tight">
+            <h2 className="page-heading mb-4 sm:mb-6 leading-tight">
               Algorithms
               <div className="h-1 sm:h-2 w-24 bg-primary mt-4" />
-            </h3>
+            </h2>
             <p className="text-base sm:text-xl text-zinc-400 font-medium leading-relaxed">
               Selected synchronization algorithms analyzed by their properties
               and formal logic definitions.

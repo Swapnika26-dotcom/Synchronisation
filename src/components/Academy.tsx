@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ALGORITHMS } from "../constants";
 import { AlgorithmType } from "../types";
 import { Simulator } from "./Simulator";
@@ -32,112 +32,114 @@ export function Academy() {
     { id: 'hardware', title: 'Synchronization Algorithms (Hardware)', subtitle: 'Atomic instructions provided by modern CPU architectures.' },
   ];
 
+  useEffect(() => {
+    if (selectedAlgo) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [selectedAlgo]);
+
   if (selectedAlgo) {
     const data = ALGORITHMS.find(a => a.id === selectedAlgo)!;
-    const currentCode = ALGO_CODE_TEMPLATES[selectedAlgo]?.[selectedLang] || getDefaultTemplate(selectedAlgo, selectedLang);
-
-    const handleRun = (code: string) => {
-      setIsExecuting(true);
-      setTerminalOutput([]);
-      const startTime = new Date().toLocaleTimeString();
-      setTimeout(() => {
-        setTerminalOutput([`[sys] Initializing ${selectedLang.toUpperCase()} environment...`]);
-        setTimeout(() => {
-          setTerminalOutput(prev => [...prev, `[sys] Kernel context: sync_algo_${selectedAlgo}`]);
-          setTimeout(() => {
-            setTerminalOutput(prev => [
-              ...prev, 
-              `[stdout] P0 entering entry section...`,
-              `[stdout] CS_LOCK acquired.`,
-              `[stdout] Executing critical section...`,
-              `[stdout] releasing resources...`,
-              `[sys] Process terminated at ${startTime}`
-            ]);
-            setIsExecuting(false);
-          }, 1000);
-        }, 600);
-      }, 400);
-    };
+    
+    // Mark as read for quiz unlocking
+    const savedRead = localStorage.getItem('concepts_read');
+    const readList = savedRead ? JSON.parse(savedRead) : [];
+    if (!readList.includes(selectedAlgo)) {
+      localStorage.setItem('concepts_read', JSON.stringify([...readList, selectedAlgo]));
+    }
 
     return (
-      <div className="space-y-12 pb-20 animate-in fade-in duration-500">
-        <button 
-          onClick={() => {
-            setSelectedAlgo(null);
-            setTerminalOutput([]);
-          }}
-          className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group"
-        >
-          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Registry
-        </button>
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="space-y-12 pb-20"
+      >
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={() => setSelectedAlgo(null)}
+            className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group px-6 py-3 bg-secondary/30 rounded-2xl border border-border"
+          >
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Algorithm Registry
+          </button>
+          <div className="text-[10px] font-black uppercase tracking-widest text-primary/50">
+            Academy / <span className="text-foreground">{data.title}</span>
+          </div>
+        </div>
 
         <section className="grid grid-cols-1 xl:grid-cols-12 gap-12 sm:gap-16">
-          <div className="xl:col-span-4 space-y-10">
-            <header className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest border border-primary/10">
-                <BookOpen className="w-3.5 h-3.5" />
-                Theory Module
-              </div>
-              <h2 className="text-5xl sm:text-7xl font-black tracking-tighter uppercase leading-[0.8]">
+          <div className="xl:col-span-12 space-y-8 mb-8 border-b-4 border-foreground pb-12">
+             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-2xl text-[11px] font-black uppercase tracking-widest border border-primary/20">
+                <BookOpen className="w-4 h-4" />
+                Technical Specification v2.0
+             </div>
+             <h1 className="page-heading mb-6">
                 {data.title}
-              </h2>
-              <p className="text-xl text-muted-foreground font-medium leading-relaxed border-l-2 border-primary/20 pl-6 italic">
+             </h1>
+             <p className="text-xl sm:text-2xl text-muted-foreground font-medium leading-tight max-w-4xl">
                 {data.description}
-              </p>
-            </header>
+             </p>
+          </div>
 
+          <div className="xl:col-span-4 space-y-10">
             <div className="grid grid-cols-1 gap-4">
               {data.properties.map((prop, i) => (
-                <div key={i} className="p-6 bg-secondary/30 border border-white/5 rounded-3xl space-y-1 group transition-all hover:bg-secondary/50">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary group-hover:text-primary transition-colors opacity-50 group-hover:opacity-100">
+                <div key={i} className="p-8 bg-card border border-border rounded-[2.5rem] space-y-2 group transition-all hover:border-primary shadow-sm">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary opacity-60">
                     {prop.label}
                   </span>
-                  <p className="text-lg font-bold text-foreground">
+                  <p className="text-2xl font-black text-foreground">
                     {prop.value}
                   </p>
                 </div>
               ))}
             </div>
 
-            <div className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-8 space-y-6">
-               <div className="flex items-center gap-2 text-primary">
-                  <ShieldCheck className="w-5 h-5" />
-                  <span className="text-xs font-black uppercase tracking-[0.2em]">Safety Invariants</span>
+            <div className="bg-zinc-950 text-white rounded-[3rem] p-10 space-y-8 shadow-2xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
+                  <ShieldCheck className="w-48 h-48" />
                </div>
-               <div className="space-y-4">
+               <div className="flex items-center gap-3 text-primary relative z-10">
+                  <ShieldCheck className="w-6 h-6" />
+                  <span className="text-xs font-black uppercase tracking-[0.2em]">Safety Verification</span>
+               </div>
+               <div className="space-y-6 relative z-10">
                   <div className="flex gap-4">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
-                    <p className="text-sm font-medium text-muted-foreground leading-relaxed">The ready queue prevents indefinite postponement through strict ordering.</p>
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 shrink-0" />
+                    <p className="text-sm font-medium text-zinc-400 leading-relaxed uppercase tracking-wide">Mutual Exclusion: Correct execution prevents atomic interleaving.</p>
                   </div>
                   <div className="flex gap-4">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5 shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
-                    <p className="text-sm font-medium text-muted-foreground leading-relaxed">Mutual exclusion is guaranteed via hardware-assisted atomic context switches.</p>
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 shrink-0" />
+                    <p className="text-sm font-medium text-zinc-400 leading-relaxed uppercase tracking-wide">Bounded Wait: No process waits indefinitely for context grant.</p>
                   </div>
                </div>
             </div>
           </div>
 
           <div className="xl:col-span-8 space-y-8">
-            <div className="flex items-center justify-between">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-green-500/10 text-green-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-500/20">
-                <Zap className="w-4 h-4" />
-                Live OS Laboratory
-              </div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 italic">
-                Primary Simulation Stage active
-              </div>
-            </div>
-            
-            <div className="bg-secondary/20 border-2 border-primary/20 rounded-[3.5rem] p-2 shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden group relative">
-              <div className="absolute -inset-1 bg-gradient-to-br from-primary/15 to-transparent blur-3xl opacity-20 pointer-events-none" />
-              <div className="bg-background rounded-[3.2rem] overflow-hidden border border-border/50 group-hover:border-primary/20 transition-all">
+            <div className="bg-secondary/20 border-2 border-primary/20 rounded-[3.5rem] p-4 shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden group relative">
+              <div className="bg-background rounded-[3rem] overflow-hidden border border-border/50 shadow-inner">
                 <Simulator lockedAlgo={selectedAlgo} hideAlgoSelection={true} />
               </div>
             </div>
+            
+            <div className="bg-card border border-border rounded-[3rem] p-10 space-y-6">
+               <div className="flex items-center justify-between border-b border-border pb-6">
+                  <h3 className="font-black tracking-tight uppercase flex items-center gap-3">
+                    <Code2 className="w-6 h-6 text-primary" />
+                    Pseudocode Implementation
+                  </h3>
+               </div>
+               <div className="bg-zinc-950 rounded-3xl p-8 overflow-hidden font-mono text-sm shadow-xl">
+                  <pre className="text-primary/90 leading-loose scrollbar-hide overflow-x-auto">
+                    <code>{data.pseudocode}</code>
+                  </pre>
+               </div>
+            </div>
           </div>
         </section>
-      </div>
+      </motion.div>
     );
   }
 
@@ -148,9 +150,9 @@ export function Academy() {
           <Cpu className="w-4 h-4" />
           Algorithm Academy
         </div>
-        <h2 className="text-5xl sm:text-8xl font-black tracking-tighter leading-[0.8] uppercase">
+        <h2 className="page-heading">
           Master Your <br />
-          <span className="text-primary italic tracking-normal lowercase font-serif italic text-6xl sm:text-9xl">Synchronization</span>
+          <span className="text-primary italic">Synchronization</span>
         </h2>
         <p className="text-xl text-muted-foreground font-medium max-w-2xl leading-relaxed">
           Comprehensive curriculum covering software logic, kernel primitives, classical problems, and hardware-level atomicity.
@@ -161,7 +163,7 @@ export function Academy() {
         {categories.map((cat) => (
           <div key={cat.id} className="space-y-12">
             <div className="space-y-2">
-              <h3 className="text-2xl sm:text-4xl font-black tracking-tight uppercase group flex items-center gap-4">
+              <h3 className="uppercase group flex items-center gap-4">
                 <div className="w-2 h-10 bg-primary rounded-full group-hover:h-12 transition-all" />
                 {cat.title}
               </h3>
@@ -194,7 +196,7 @@ export function Academy() {
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary opacity-60">
                       Module {cat.id.charAt(0).toUpperCase()}{i + 1}
                     </span>
-                    <h3 className="text-2xl font-black tracking-tight leading-none group-hover:text-primary transition-colors">
+                    <h3 className="font-black tracking-tight leading-none group-hover:text-primary transition-colors">
                       {algo.title}
                     </h3>
                     <p className="text-sm font-medium text-muted-foreground leading-relaxed line-clamp-2">

@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { Concepts } from './components/Concepts';
-import { Simulator } from './components/Simulator';
-import { Analytics } from './components/Analytics';
 import { Quiz } from './components/Quiz';
 import { Playground } from './components/Playground';
 import { Academy } from './components/Academy';
@@ -13,6 +11,12 @@ import { cn } from './lib/utils';
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'concepts' | 'academy' | 'playground' | 'quiz'>('home');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
+
+  useEffect(() => {
+    // Scroll to top on tab change
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [activeTab]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -20,12 +24,27 @@ export default function App() {
     root.classList.add(theme);
   }, [theme]);
 
+  // Load progress from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('quiz_progress');
+    if (saved) {
+      setCompletedLevels(JSON.parse(saved));
+    }
+  }, []);
+
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
+  const markLevelComplete = (level: number) => {
+    const updated = Array.from(new Set([...completedLevels, level]));
+    setCompletedLevels(updated);
+    localStorage.setItem('quiz_progress', JSON.stringify(updated));
+  };
+
   return (
-    <div className={cn("min-h-screen bg-background text-foreground transition-colors duration-300 selection:bg-primary selection:text-primary-foreground", theme ==='dark' ? 'dark' : '')}>
+    <div className={cn("min-h-screen bg-background text-foreground transition-colors duration-300 selection:bg-primary selection:text-primary-foreground font-sans", theme ==='dark' ? 'dark' : '')}>
+      
       <Navbar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -33,14 +52,14 @@ export default function App() {
         toggleTheme={toggleTheme} 
       />
       
-      <main className="container mx-auto px-4 pt-24 pb-20 sm:pt-48">
+      <main className="container mx-auto px-4 pt-24 pb-20 sm:pt-48 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: "circOut" }}
           >
             {activeTab === 'home' && (
               <Hero 
@@ -51,17 +70,33 @@ export default function App() {
             {activeTab === 'concepts' && <Concepts />}
             {activeTab === 'academy' && <Academy />}
             {activeTab === 'playground' && <Playground />}
-            {activeTab === 'quiz' && <Quiz />}
+            {activeTab === 'quiz' && (
+              <Quiz 
+                completedLevels={completedLevels} 
+                onCompleteLevel={markLevelComplete} 
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      <footer className="border-t border-border py-8 mt-auto">
-        <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          <p className="text-xs opacity-50 italic">© 2026 SyncMaster - OS Process Synchronization Simulator</p>
-          <p className="mt-1 text-xs opacity-50 italic">
-            Guided by Prof.Mr.P.Venkata Rajulu, Built by Swapnika krishna Jakka
-          </p>
+      <footer className="border-t border-border/50 py-12 mt-auto bg-card/30 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 px-4 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+               <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">System Operational</span>
+            </div>
+            <div className="text-center space-y-1 text-[10px] font-normal uppercase tracking-widest text-muted-foreground">
+              <p className="opacity-50">© 2026 SyncMaster Protocol</p>
+              <p>
+                Built by <span className="text-foreground">Swapnika krishna Jakka</span>
+              </p>
+              <p className="opacity-40">
+                Academic Direction: <span className="text-foreground">Prof. Mr. P. Venkata Rajulu</span>
+              </p>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

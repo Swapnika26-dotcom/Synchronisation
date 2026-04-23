@@ -6,19 +6,19 @@ export const ALGORITHMS: ConceptData[] = [
     id: 'peterson',
     category: 'software',
     title: "Peterson's Algorithm",
-    subtitle: 'Classic Software Sync',
-    description: "A software solution for 2 processes using a combination of flag and turn variables.",
+    subtitle: 'Classic 2-Process Synchronization',
+    description: "A concurrent programming algorithm for mutual exclusion that allows two processes to share a single-use resource without conflict, using only shared memory for communication. It overcomes the strict alternation problem by combining reservation flags and a turn-taking variable to ensure safety and progress.",
     properties: [
       { label: 'PROCESSES', value: 'Exactly 2' },
-      { label: 'VARS', value: 'flag[2], turn' },
-      { label: 'MECHANISM', value: 'Flag + Turn' }
+      { label: 'MECHANISM', value: 'flag[2], turn' },
+      { label: 'ASSURANCE', value: 'Deadlock-free, Bounded-waiting' }
     ],
-    pseudocode: `// Process i
+    pseudocode: `// Process i (j is other)
 flag[i] = true;
 turn = j;
-while(flag[j] && turn == j);
+while(flag[j] && turn == j); 
 
-// critical section
+// Critical Section
 
 flag[i] = false;`
   },
@@ -26,12 +26,12 @@ flag[i] = false;`
     id: 'dekker',
     category: 'software',
     title: "Dekker's Algorithm",
-    subtitle: 'First Correct Software Solution',
-    description: "The first documented correct software-only solution to the mutual exclusion problem.",
+    subtitle: 'The First Concurrent Solution',
+    description: "The first documented correct software-based solution to the mutual exclusion problem in computer science. It manages access between two processes without hardware atomic instructions through a complex multi-stage request and withdrawal logic that uses a turn variable to prevent starvation.",
     properties: [
-      { label: 'HISTORY', value: 'First Known' },
-      { label: 'VARS', value: 'want[2], turn' },
-      { label: 'TYPE', value: 'Busy Waiting' }
+      { label: 'HISTORY', value: 'First correct solution' },
+      { label: 'LOGIC', value: 'Intent-based coordination' },
+      { label: 'TYPE', value: 'Busy-waiting software protocol' }
     ],
     pseudocode: `flag[i] = true;
 while(flag[j]) {
@@ -41,18 +41,20 @@ while(flag[j]) {
     flag[i] = true;
   }
 }
-// CS... turn = j; flag[i] = false;`
+// Critical Section
+turn = j; 
+flag[i] = false;`
   },
   {
     id: 'bakery',
     category: 'software',
     title: "Bakery Algorithm",
-    subtitle: 'N-Process Fairness',
-    description: "Lamport's Bakery algorithm handles N processes by assigning a ticket number to each requesting process.",
+    subtitle: 'Lamport\'s Ticket System',
+    description: "Leslie Lamport's algorithm for providing mutual exclusion to any number of processes (N). It uses a ticketing system similar to a bakery: every process receives a number upon entry, and the one with the lowest number enters next. Ties are broken by lexicographical process IDs.",
     properties: [
-      { label: 'N-PROCESS', value: 'Supported' },
-      { label: 'LOGIC', value: 'Ticket Queue' },
-      { label: 'FAIR', value: 'First-Come' }
+      { label: 'LIMIT', value: 'N-Processes' },
+      { label: 'SYSTEM', value: 'Ticketing / FIFO-like' },
+      { label: 'DATA', value: 'choosing[], number[]' }
     ],
     pseudocode: `choosing[i] = true;
 number[i] = max(number[0..n-1]) + 1;
@@ -61,7 +63,8 @@ for (j = 0; j < n; j++) {
   while (choosing[j]);
   while (number[j] != 0 && (number[j],j) < (number[i],i));
 }
-// CS... number[i] = 0;`
+// Critical Section
+number[i] = 0;`
   },
 
   // MECHANISMS
@@ -69,34 +72,34 @@ for (j = 0; j < n; j++) {
     id: 'mutex',
     category: 'mechanism',
     title: 'Mutex Lock',
-    subtitle: 'Binary Resource Key',
-    description: 'A tool that provides mutual exclusion by allowing only one owner to access the resource.',
+    subtitle: 'Mutual Exclusion Primitive',
+    description: "Short for 'Mutual Exclusion', a mutex is a kernel/software primitive that serves as a binary lock. It provides exclusive access to a resource: a process must 'acquire' the lock before entering a critical section and 'release' it afterwards. It represents a strict locked/unlocked state.",
     properties: [
-      { label: 'TYPE', value: 'Binary' },
-      { label: 'MODE', value: 'Locked/Unlocked' },
-      { label: 'COST', value: 'Minimal' }
+      { label: 'TYPE', value: 'Sleep or Busy-wait' },
+      { label: 'OWNERSHIP', value: 'Strictly enforced' },
+      { label: 'EFFICIENCY', value: 'Lightweight resource guard' }
     ],
-    pseudocode: `acquire(lock) {
-   while (lock == busy);
-   lock = busy;
+    pseudocode: `acquire(mutex) {
+   while (lock_available == false) // block;
+   lock_available = false;
 }
-release(lock) {
-   lock = free;
+release(mutex) {
+   lock_available = true;
 }`
   },
   {
     id: 'semaphore',
     category: 'mechanism',
     title: 'Semaphores',
-    subtitle: 'Integer Coordination Variable',
-    description: 'Kernel variables (binary or counting) that manage access to shared resource pools.',
+    subtitle: 'Integer Signaling Primitive',
+    description: "Introduced by Dijkstra, semaphores are integer variables used as signaling counters for shared resources. A counting semaphore can allow multiple processes to access a finite pool of identical resources simultaneously through P(wait) and V(signal) atomic operations.",
     properties: [
-      { label: 'TYPES', value: 'Binary/Counting' },
-      { label: 'PRIMITIVES', value: 'wait/signal' },
-      { label: 'USE', value: 'Resource Pool' }
+      { label: 'VALUE', value: 'S >= 0 (Non-negative)' },
+      { label: 'OPS', value: 'Wait (P) and Signal (V)' },
+      { label: 'VERSIONS', value: 'Binary, Counting, Strong' }
     ],
     pseudocode: `wait(S) {
-  while (S <= 0);
+  while (S <= 0); // sleep/wait
   S--;
 }
 signal(S) {
@@ -107,35 +110,22 @@ signal(S) {
     id: 'monitor',
     category: 'mechanism',
     title: 'Monitors',
-    subtitle: 'Object-Oriented Sync',
-    description: 'A high-level abstraction that provides automatic mutual exclusion for shared data objects.',
+    subtitle: 'Compiler-Enforced Safety',
+    description: "A high-level synchronization construct that encapsulates shared variables and operations within an abstract data type. It provides automatic mutual exclusion: only one process can be active within the monitor at a time, protecting the programmer from manual locking errors.",
     properties: [
-      { label: 'ABSTRACTION', value: 'High Level' },
-      { label: 'SUPPORT', value: 'Modern Languages' },
-      { label: 'SAFETY', value: 'Automatic' }
+      { label: 'MODEL', value: 'Object-Oriented' },
+      { label: 'NATURE', value: 'Compiler-level abstraction' },
+      { label: 'WAITING', value: 'Condition variable queues' }
     ],
-    pseudocode: `monitor SynchronizedObject {
-  public synchronized void operation() {
-    // only one process active here
+    pseudocode: `monitor SynchronizedResource {
+  condition cv;
+  int resource_busy = 0;
+  
+  public void enter() {
+    if (resource_busy) cv.wait();
+    resource_busy = 1;
   }
 }`
-  },
-  {
-    id: 'condition',
-    category: 'mechanism',
-    title: 'Condition Variables',
-    subtitle: 'Event-Based Coordination',
-    description: 'Allows processes to wait for specific conditions without holding onto busy-waiting loop cycles.',
-    properties: [
-      { label: 'COMMANDS', value: 'wait, signal' },
-      { label: 'NATURE', value: 'Stateless' },
-      { label: 'REQUIREMENT', value: 'Mutex' }
-    ],
-    pseudocode: `lock(mutex);
-while (!condition) cond.wait(mutex);
-// do work
-cond.signal();
-unlock(mutex);`
   },
 
   // PROBLEMS
@@ -143,57 +133,60 @@ unlock(mutex);`
     id: 'prodcons',
     category: 'problem',
     title: 'Producer-Consumer',
-    subtitle: 'Bounded Buffer Sync',
-    description: 'Coordinating processes where producers add items and consumers remove them from a shared buffer.',
+    subtitle: 'The Bounded-Buffer Simulation',
+    description: "A classic multi-process synchronization problem where 'producers' put data into a finite-size shared buffer and 'consumers' take it out. Coordination must prevent buffer overflow (producers wait) and underflow (consumers wait) through semaphores or condition variables.",
     properties: [
-      { label: 'BUFFER', value: 'Fixed Size' },
-      { label: 'VARS', value: 'full, empty, mutex' },
-      { label: 'TYPE', value: 'Cooperation' }
+      { label: 'INTERACTION', value: 'Cooperating processes' },
+      { label: 'LIMIT', value: 'Buffer Size N' },
+      { label: 'GUARD', value: 'Full/Empty/Mutex' }
     ],
     pseudocode: `Producer:
-  wait(empty); wait(mutex);
-  buffer.add();
-  signal(mutex); signal(full);
+  wait(emptySlot); wait(mutex);
+  buffer.add(item);
+  signal(mutex); signal(fullSlot);
 
 Consumer:
-  wait(full); wait(mutex);
-  buffer.remove();
-  signal(mutex); signal(empty);`
+  wait(fullSlot); wait(mutex);
+  buffer.remove(item);
+  signal(mutex); signal(emptySlot);`
   },
   {
     id: 'dining',
     category: 'problem',
     title: 'Dining Philosophers',
-    subtitle: 'Resource Conflicts',
-    description: 'Five philosophers needing two shared chopsticks to eat. A classic model for deadlock analysis.',
+    subtitle: 'Deadlock and Starvation Model',
+    description: "A classic representation of resource allocation and deadlock risks. N philosophers sit at a table sharing forks. To eat, one needs two adjacent forks. Without proper hierarchy or arbitration, the system can enter a 'circular wait' deadlock where no progress is possible.",
     properties: [
-      { label: 'RESOURCE', value: 'Shared Forks' },
-      { label: 'PROBLEM', value: 'Deadlock' },
-      { label: 'STATE', value: 'Thinking/Eating' }
+      { label: 'DIAGNOSIS', value: 'Circular Resource Wait' },
+      { label: 'RESOURCES', value: 'Shared single-unit forks' },
+      { label: 'SOLUTION', value: 'Odd/Even or Resource Hierarchy' }
     ],
-    pseudocode: `while(true) {
-  wait(chopstick[i]);
-  wait(chopstick[(i+1)%5]);
-  // eat...
-  signal(chopstick[i]);
-  signal(chopstick[(i+1)%5]);
+    pseudocode: `void philosopher(int i) {
+  while(true) {
+    think();
+    wait(fork[i]);
+    wait(fork[(i+1)%N]);
+    eat();
+    signal(fork[i]);
+    signal(fork[(i+1)%N]);
+  }
 }`
   },
   {
     id: 'rw',
     category: 'problem',
     title: 'Readers-Writers',
-    subtitle: 'Shared Database Access',
-    description: 'Managing access to a shared resource where readers can be concurrent but writers are exclusive.',
+    subtitle: 'Priority and Throughput Analysis',
+    description: "Models concurrent access to a database or shared file. Coordination must allow multiple Readers simultaneously for efficiency, but grant exclusive access to a Writer for data integrity. The logic must manage reader/writer priority to prevent starvation of either side.",
     properties: [
-      { label: 'READERS', value: 'Multiple allowed' },
-      { label: 'WRITERS', value: 'Strictly One' },
-      { label: 'VAR', value: 'readcount' }
+      { label: 'READERS', value: 'Concurrent (Shared)' },
+      { label: 'WRITERS', value: 'Exclusive (Atomic)' },
+      { label: 'POLICY', value: 'Reader-biased or Writer-biased' }
     ],
     pseudocode: `Reader:
   wait(mutex); readcount++;
   if (readcount==1) wait(wrt);
-  signal(mutex); // READ...
+  signal(mutex); // READING
   wait(mutex); readcount--;
   if (readcount==0) signal(wrt);
   signal(mutex);`
@@ -204,12 +197,12 @@ Consumer:
     id: 'tas',
     category: 'hardware',
     title: 'Test-and-Set',
-    subtitle: 'Atomic Bit Modification',
-    description: 'A hardware-level instruction bit check and set operation for spinlock implementation.',
+    subtitle: 'Atomic Bit Selection',
+    description: "An indivisible hardware instruction provided by the CPU to read a boolean flag and set it to 'true' in a single cycle. It prevents race conditions during lock entry by ensuring that 'checking the lock' and 'taking the lock' cannot be interrupted.",
     properties: [
-      { label: 'CPU', value: 'x86, ARM' },
-      { label: 'MODE', value: 'Atomic' },
-      { label: 'VALUE', value: 'Binary' }
+      { label: 'ATOM', value: 'Read-Modify-Write cycle' },
+      { label: 'BUS', value: 'Hardware-enforced lock' },
+      { label: 'RESULT', value: 'Spinlock implementation' }
     ],
     pseudocode: `boolean TestAndSet(boolean *lock) {
    boolean old = *lock;
@@ -221,29 +214,29 @@ Consumer:
     id: 'cas',
     category: 'hardware',
     title: 'Compare-and-Swap',
-    subtitle: 'Conditional Atomic Write',
-    description: 'Compares value and updates only if match. Foundation for lock-free data structures.',
+    subtitle: 'Conditional Atomic Exchange',
+    description: "A fundamental atomic CPU instruction that compares the value of a memory location with an 'expected' value and, only if they match, updates it to a 'new' value. It is the cornerstone for building lock-free and wait-free data structures in modern systems.",
     properties: [
-      { label: 'TYPE', value: 'Non-blocking' },
-      { label: 'HW', value: 'Atomic-Exchange' },
-      { label: 'VARS', value: 'target, exp, new' }
+      { label: 'PARAMS', value: 'Target, Expected, New' },
+      { label: 'GUARANTEE', value: 'Compare + Exchange' },
+      { label: 'USE', value: 'Non-blocking data structures' }
     ],
-    pseudocode: `int CAS(int *val, int exp, int next) {
+    pseudocode: `int CAS(int *val, int expected, int next) {
   int old = *val;
-  if (*val == exp) *val = next;
+  if (*val == expected) *val = next;
   return old;
 }`
   },
   {
     id: 'swap',
     category: 'hardware',
-    title: 'Swap Instruction',
-    subtitle: 'Atomic Value Exchange',
-    description: 'Atomically exchanges two memory locations to manage lock states safely.',
+    title: 'Atomic Swap (XCHG)',
+    subtitle: 'Zero-Wait Value Permutation',
+    description: "An instruction that interchanges the contents of two words (typically a register and memory) atomically. Used to implement mutex entry by swapping a 'local locked' status with a 'shared lock' variable, ensuring only one process holds the token.",
     properties: [
-      { label: 'ISA', value: 'XCHG' },
-      { label: 'OP', value: 'Atomic Swap' },
-      { label: 'USAGE', value: 'Spinlock' }
+      { label: 'X86', value: 'XCHG instruction' },
+      { label: 'PRIMITIVE', value: 'Atomic Exchange' },
+      { label: 'EFFICIENCY', value: 'O(1) cycle cost' }
     ],
     pseudocode: `void Swap(boolean *a, boolean *b) {
    boolean temp = *a;
@@ -255,35 +248,36 @@ Consumer:
     id: 'faa',
     category: 'hardware',
     title: 'Fetch-and-Add',
-    subtitle: 'Atomic Increment',
-    description: 'Increments and returns the previous value in one atomic hardware cycle.',
+    subtitle: 'Parallel Counter Increment',
+    description: "Atomically increments the value at a memory location and returns the previous value. This is highly efficient for implementing ticket-based locks and shared counting variables in high-concurrency environments.",
     properties: [
-      { label: 'OP', value: 'Atomic Inc' },
-      { label: 'NATURE', value: 'Cumulative' },
-      { label: 'USE', value: 'Ticket Locks' }
+      { label: 'ISA SUPPORT', value: 'x86 (LOCK XADD)' },
+      { label: 'SCALABILITY', value: 'High' },
+      { label: 'PRIMITIVE', value: 'Integer Accumulation' }
     ],
-    pseudocode: `int FetchAndAdd(int *target, int inc) {
+    pseudocode: `int FetchAndAdd(int *target, int count) {
   int old = *target;
-  *target += inc;
+  *target = *target + count;
   return old;
 }`
   },
   {
     id: 'llsc',
     category: 'hardware',
-    title: 'LL / SC',
-    subtitle: 'Load-Link / Store-Conditional',
-    description: 'RISC atomic primitives that monitor bus collisions to ensure exclusive writes.',
+    title: 'Load-Link / Store-Conditional',
+    subtitle: 'Optimistic Hardware Concurrency',
+    description: "A pair of hardware instructions used on RISC architectures. Load-Link reads a value, and Store-Conditional only writes a value back if no other process has modified that same location in the interim. It detects bus collisions effectively.",
     properties: [
-      { label: 'ARCH', value: 'RISC Primitives' },
-      { label: 'MONITOR', value: 'SC Logic' },
-      { label: 'FLOW', value: 'Retry Loop' }
+      { label: 'ARCH', value: 'ARM, PowerPC, MIPS' },
+      { label: 'LOGIC', value: 'Optimistic Retry' },
+      { label: 'FAIL SAFE', value: 'Detects context switches' }
     ],
-    pseudocode: `retry:
-  LL r1, mem
-  SC r2, r1, mem
-  if(r2 == 0) goto retry`
-  },
+    pseudocode: `loop:
+  LL r1, address
+  // modify r1
+  SC r2, r1, address
+  if (r2 == 0) goto loop`
+  }
 ];
 
 export const COLORS = [

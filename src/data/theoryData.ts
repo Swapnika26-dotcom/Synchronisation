@@ -39,104 +39,49 @@ export interface FundamentalData {
 export const SYNCHRONIZATION_FUNDAMENTALS: FundamentalData[] = [
   {
     id: 'intro-definition',
-    title: 'What is Synchronization?',
-    content: 'Process Synchronization is a mechanism that coordinates the execution of processes that share data. It ensures that multiple processes do not access the same shared resource simultaneously in a way that leads to data corruption.',
+    title: 'Mechanism of Synchronization',
+    content: 'Process Synchronization is the multi-process coordination of atomic operation sequences that access shared data. It prevents race conditions—states where the final computational outcome depends on the non-deterministic interleaving of process execution.',
     icon: Activity,
     subsections: [
       {
-        title: 'The Core Objective',
-        content: 'To prevent data inconsistency and ensure that co-operating processes execute in a predictable, orderly fashion.',
+        title: 'Safety and Liveness',
+        content: 'Robust synchronization must satisfy Safety (mutual exclusion), Liveness (progress), and Boundedness (no starvation).',
         list: [
-          '👉 Example: Two people editing the same Word document via cloud - sync ensures one person\'s "Save" doesn\'t erase the other\'s changes.'
-        ]
-      },
-      {
-        title: 'Cooperating Processes',
-        content: 'Processes that can affect or be affected by other processes. They must coordinate to share data safely.',
-        list: [
-          '👉 Example: A producer process generating data and a consumer process using it must wait for each other.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'definition',
-    title: 'Why Synchronization?',
-    content: 'Modern Operating Systems run multiple processes concurrently. These processes share resources like memory, files, and printers. Without careful coordination, this shared access leads to absolute chaos.',
-    icon: Lightbulb,
-    subsections: [
-      {
-        title: 'Concurrent Execution',
-        content: 'The CPU rapidly switches between processes, creating the appearance of parallel execution.',
-        list: [
-          '👉 Example: Running a browser, a music player, and a code editor at once. The OS syncs resources like your sound card so only one plays audio properly.'
+          '👉 Safety: No two processes are in the critical section simultaneously.',
+          '👉 Liveness: If no process is in the critical section, no process is blocked from entering.',
+          '👉 Bounded Waiting: A limit exists on the number of times other processes can enter the CS before a requesting process is granted entry.'
         ]
       }
     ]
   },
   {
     id: 'race-condition-detailed',
-    title: 'Race Condition',
-    content: 'A race condition occurs when multiple processes access shared data simultaneously, and the final outcome depends on the specific order of execution.',
+    title: 'The Race Condition',
+    content: 'A software anomaly occurring when the timing or interleaving of multiple execution threads impacts the correctness of shared state. It typically arises from non-atomic Read-Modify-Write cycles.',
     icon: AlertTriangle,
     subsections: [
       {
-        title: 'The Interleaving Problem',
-        content: 'Even a simple "counter++" can fail if interleaved. It compiles to three instructions: Load, Add, Store.',
+        title: 'The CS Problem',
+        content: 'The Critical Section (CS) is the portion of code where shared memory is modified. Protecting this section is the primary goal of concurrency control.',
         list: [
-          'Example: Two ATMs withdrawing $50 from a $60 account.',
-          'P1 checks: $60 available.',
-          'P2 checks: $60 available.',
-          'P1 withdraws: balance becomes $10.',
-          'P2 withdraws: balance becomes $10 (but total $100 was taken!).'
+          'Example: Two threads incrementing a shared counter simultaneously without locks often results in lost updates because the increment operation is not atomic at the machine level.'
         ]
       }
     ]
   },
   {
     id: 'critical-section-problem',
-    title: 'Critical Section Problem',
-    content: 'The Critical Section (CS) is the segment of code where a process accesses shared resources.',
+    title: 'Solution Design',
+    content: 'A software or hardware solution to the synchronization problem must ensure that code execution follows a strict Entry → Critical → Exit sequence.',
     icon: LockIcon,
     subsections: [
       {
-        title: 'Process Structure',
-        content: 'A robust solution must manage these phases:',
+        title: 'Protocol Phases',
+        content: 'All synchronization solutions rely on a standardized request/release protocol.',
         list: [
-          'Entry Section: Requesting a key.',
-          'Critical Section: Being inside the room.',
-          'Exit Section: Returning the key.',
-          '👉 Example: A shared printer - the code sending data to the printer is the Critical Section.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'hardware-sync',
-    title: 'Hardware Synchronization',
-    content: 'Modern hardware provides atomic instructions that cannot be interrupted, ensuring atomic lock acquisition.',
-    icon: Cpu,
-    subsections: [
-      {
-        title: 'TestAndSet & CAS',
-        content: 'Atomic instructions that read and write memory in a single clock cycle.',
-        list: [
-          '👉 Example: A "Stop/Go" sign that changes color instantly. You cannot see it half-red and half-green.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'monitors-theory',
-    title: 'Monitors',
-    content: 'A high-level language construct that provides automatic mutual exclusion.',
-    icon: Shield,
-    subsections: [
-      {
-        title: 'Condition Variables',
-        content: 'Uses wait() and signal() to manage process queues.',
-        list: [
-          '👉 Example: A bank vault with an automated security guard. You say "I want to deposit", the guard handles the door and locks for you.'
+          'Entry Section: Atomically requests permission to enter.',
+          'Critical Section: Executes the non-stoppable shared data modification.',
+          'Exit Section: Releases the lock and signals waiting processes.'
         ]
       }
     ]
@@ -147,49 +92,49 @@ export const SYNCHRONIZATION_THEORY: TheoryConcept[] = [
   {
     id: 'mutex-lock',
     title: 'Mutex Lock',
-    description: 'A binary synchronization primitive (binary semaphore) that ensures mutual exclusion.',
+    description: 'A hardware-supported software primitive (binary semaphore) used to provide exclusive access to a resource.',
     icon: LockIcon,
     points: [
-      'Example: Restroom binary key.',
-      'acquire() -> take the key',
-      'release() -> return the key',
-      'One process at a time.'
+      'Strict Ownership Requirement',
+      'Binary States: Locked / Unlocked',
+      'Prevents simultaneous context entry',
+      'Atomic Acquire/Release operations'
     ]
   },
   {
     id: 'peterson-algo',
     title: "Peterson's Algorithm",
-    description: 'A classic software solution for 2 processes using flag[2] and turn variables.',
+    description: 'A classic software-based solution for two processes using shared flag and turn variables.',
     icon: RotateCcw,
     points: [
-      'Example: Two polite people at a door.',
-      'flag[i] = true (I want to go)',
-      'turn = j (You go first)',
-      'Safe from collision.'
+      'Provably correct for 2 processes',
+      'No specialized hardware needed',
+      'Progressive and fair scheduling',
+      'Uses shared memory flags'
     ]
   },
   {
     id: 'semaphores',
     title: 'Semaphores',
-    description: 'Integer variables accessed only via wait(P) and signal(V).',
+    description: 'Integer-based signaling mechanisms used to coordinate multiple processes via atomic P (Wait) and V (Signal) operations.',
     icon: Workflow,
     points: [
-      'Example: Parking lot with 10 slots.',
-      'S=10 (Available slots)',
-      'wait(S) fills a slot (S--)',
-      'signal(S) frees a slot (S++)'
+      'Counting semaphores for resource pools',
+      'Binary semaphores for mutual exclusion',
+      'Avoids busy-waiting via queueing',
+      'Dijkstra\'s fundamental primitive'
     ]
   },
   {
     id: 'monitors-comp',
     title: 'Monitors',
-    description: 'High-level synchronization construct with automatic mutual exclusion.',
+    description: 'High-level programmatic constructs providing automatic mutual exclusion via compiler-enforced locking.',
     icon: Shield,
     points: [
-      'Example: Java synchronized blocks.',
-      'Automatic locking/unlocking',
-      'Compiler-managed safety',
-      'No manual lock errors'
+      'Object-oriented abstraction',
+      'Encapsulates data and procedures',
+      'Built-in condition variables',
+      'Eliminates manual lock errors'
     ]
   }
 ];

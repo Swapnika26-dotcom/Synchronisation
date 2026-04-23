@@ -16,34 +16,48 @@ import {
   ChevronLeft,
   Zap,
   Brain,
-  Shield
+  Shield,
+  Lock,
+  Search,
+  Code,
+  Star,
+  BookOpen
 } from 'lucide-react';
 
 import { Terminal } from './Terminal';
 
-export function Quiz() {
+interface QuizProps {
+  completedLevels: number[];
+  onCompleteLevel: (level: number) => void;
+}
+
+export function Quiz({ completedLevels, onCompleteLevel }: QuizProps) {
   const [level, setLevel] = useState<QuizLevel | null>(null);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [conceptsReadCount, setConceptsReadCount] = useState(0);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('concepts_read');
+    if (saved) {
+      setConceptsReadCount(JSON.parse(saved).length);
+    }
+  }, []);
 
   const filteredQuestions = level ? QUIZ_QUESTIONS.filter(q => q.level === level) : [];
 
   const handleAnswer = (optionIdx: number) => {
     if (selectedOption !== null) return;
-
     setSelectedOption(optionIdx);
     const correct = optionIdx === filteredQuestions[currentIdx].answer;
     setIsCorrect(correct);
-    
-    if (correct) {
-      setScore(prev => prev + 2);
-    }
+    if (correct) setScore(prev => prev + 2);
   };
 
-  const nextQuestion = async () => {
+  const nextQuestion = () => {
     const nextIdx = currentIdx + 1;
     if (nextIdx < filteredQuestions.length) {
       setCurrentIdx(nextIdx);
@@ -51,17 +65,9 @@ export function Quiz() {
       setIsCorrect(null);
     } else {
       setShowResult(true);
-    }
-  };
-
-  const skipQuestion = async () => {
-    const nextIdx = currentIdx + 1;
-    if (nextIdx < filteredQuestions.length) {
-      setCurrentIdx(nextIdx);
-      setSelectedOption(null);
-      setIsCorrect(null);
-    } else {
-      setShowResult(true);
+      if (score + (isCorrect ? 2 : 0) >= (filteredQuestions.length * 2 * 0.7)) {
+        onCompleteLevel(level!);
+      }
     }
   };
 
@@ -76,43 +82,94 @@ export function Quiz() {
 
   if (!level) {
     const levels: { id: QuizLevel; title: string, desc: string, icon: any, color: string }[] = [
-      { id: 'beginner', title: 'Beginner', desc: 'Fundamentals, race conditions, and basic definitions.', icon: Zap, color: 'bg-green-500' },
-      { id: 'intermediate', title: 'Intermediate', desc: 'Peterson, Semaphores, and classic problem logic.', icon: Brain, color: 'bg-blue-500' },
-      { id: 'advanced', title: 'Advanced', desc: 'Hardware sync, deadlock conditions, and monitor patterns.', icon: Shield, color: 'bg-primary' },
+      { id: 1, title: 'Lvl 1: Basics', desc: 'Core definitions and process synchronization fundamentals.', icon: GraduationCap, color: 'bg-emerald-500' },
+      { id: 2, title: 'Lvl 2: Detection', desc: 'Identify algorithms using abstract clues and logic snapshots.', icon: Search, color: 'bg-blue-500' },
+      { id: 3, title: 'Lvl 3: Syntax', desc: 'Complete algorithm pseudocode and critical wait logic.', icon: BrainCircuit, color: 'bg-violet-500' },
+      { id: 4, title: 'Lvl 4: Developer', desc: 'Solve real-time implementation challenges in the terminal.', icon: Code, color: 'bg-amber-500' },
+      { id: 5, title: 'Lvl 5: Master', desc: 'The Grand Finale covering all kernel synchronization concepts.', icon: Star, color: 'bg-primary' },
     ];
+
+    const conceptsRequired = 3;
+    const canAttemptQuiz = conceptsReadCount >= conceptsRequired;
 
     return (
       <div className="space-y-12">
         <div className="max-w-3xl space-y-4">
-          <h2 className="text-5xl font-black tracking-tighter uppercase leading-[0.8]">
-            Final <br />
-            <span className="text-primary italic tracking-normal lowercase font-serif italic text-6xl">Evaluation</span>
+          <h2 className="page-heading">
+             Professional <br />
+            <span className="text-primary italic">Certification</span>
           </h2>
-          <p className="text-lg text-muted-foreground font-medium max-w-xl">
-            Select your rank. Each level tests progressively deeper understanding of OS synchronization primitives.
+          <p className="text-base text-muted-foreground font-medium max-w-xl">
+            To unlock the exam, you must first read at least <span className="text-foreground font-bold underline">{conceptsRequired}</span> fundamental concepts in the Academy.
           </p>
+          
+          <div className="inline-flex items-center gap-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-primary" />
+             </div>
+             <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Study Progress</p>
+                <div className="flex items-center gap-2">
+                   <p className="text-lg font-bold">{conceptsReadCount} / {conceptsRequired}</p>
+                   <span className="text-xs text-muted-foreground">concepts explored</span>
+                </div>
+             </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-20">
-          {levels.map((l) => (
-            <button
-              key={l.id}
-              onClick={() => setLevel(l.id)}
-              className="group p-8 bg-card border border-border rounded-[2.5rem] hover:border-primary transition-all text-left flex flex-col gap-6"
-            >
-              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg", l.color)}>
-                <l.icon className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black uppercase tracking-tight mb-2">{l.title}</h3>
-                <p className="text-sm text-muted-foreground font-medium leading-relaxed">{l.desc}</p>
-              </div>
-              <div className="mt-auto pt-6 flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Initialize Test</span>
-                <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" />
-              </div>
-            </button>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+          {levels.map((l) => {
+            const isUnlocked = l.id === 1 ? canAttemptQuiz : completedLevels.includes(l.id - 1);
+            const isCompleted = completedLevels.includes(l.id);
+
+            return (
+              <button
+                key={l.id}
+                disabled={!isUnlocked}
+                onClick={() => setLevel(l.id)}
+                className={cn(
+                  "group p-8 border rounded-[2.5rem] transition-all text-left flex flex-col gap-6 relative overflow-hidden",
+                  isUnlocked 
+                    ? "bg-card border-border hover:border-primary animate-in fade-in slide-in-from-bottom-4" 
+                    : "bg-secondary/20 border-transparent opacity-60 grayscale cursor-not-allowed"
+                )}
+              >
+                {!isUnlocked && (
+                  <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] flex items-center justify-center z-10">
+                     <Lock className="w-10 h-10 text-muted-foreground/30" />
+                  </div>
+                )}
+                
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg", 
+                  isUnlocked ? l.color : "bg-muted-foreground/20"
+                )}>
+                  <l.icon className="w-6 h-6" />
+                </div>
+                
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight mb-2 flex items-center gap-2">
+                    {l.title}
+                    {isCompleted && <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />}
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-medium leading-relaxed">{l.desc}</p>
+                </div>
+
+                <div className="mt-auto pt-6 flex items-center justify-between">
+                  <span className={cn(
+                    "text-[10px] font-black uppercase tracking-widest",
+                    isUnlocked ? "text-primary" : "text-muted-foreground"
+                  )}>
+                    {isCompleted ? "Retry Level" : isUnlocked ? "Initialize Test" : "Level Locked"}
+                  </span>
+                  <ArrowRight className={cn(
+                    "w-4 h-4 transition-transform",
+                    isUnlocked ? "text-primary group-hover:translate-x-1" : "text-muted-foreground"
+                  )} />
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
@@ -120,7 +177,7 @@ export function Quiz() {
 
   const handleProgramRun = (code: string) => {
     const expected = filteredQuestions[currentIdx].expectedOutput;
-    const isActuallyCorrect = code.toLowerCase().includes(expected?.toLowerCase() || "");
+    const isActuallyCorrect = code.toLowerCase().replace(/\s/g, '').includes(expected?.toLowerCase().replace(/\s/g, '') || "");
     
     setSelectedOption(99); 
     setIsCorrect(isActuallyCorrect);
@@ -134,7 +191,8 @@ export function Quiz() {
 
   if (showResult) {
     const perfectScore = filteredQuestions.length * 2;
-    const percentage = (score / perfectScore) * 100;
+    const passThreshold = perfectScore * 0.7;
+    const passed = score >= passThreshold;
 
     return (
       <motion.div 
@@ -142,33 +200,48 @@ export function Quiz() {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-2xl mx-auto py-12"
       >
-        <div className="bg-card border border-border rounded-[2.5rem] p-10 text-center shadow-xl space-y-8">
-          <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <Trophy className="w-12 h-12 text-primary" />
+        <div className="bg-card border-2 border-border rounded-[3.5rem] p-12 text-center shadow-2xl space-y-8 relative overflow-hidden">
+          {passed && (
+            <div className="absolute inset-0 pointer-events-none opacity-10">
+               <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--primary)_0%,_transparent_70%)]" />
+            </div>
+          )}
+
+          <div className={cn(
+            "w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl",
+            passed ? "bg-primary text-primary-foreground shadow-primary/20" : "bg-muted text-muted-foreground"
+          )}>
+            {passed ? <Award className="w-12 h-12" /> : <Shield className="w-12 h-12" />}
           </div>
           
           <div>
-            <h2 className="text-4xl font-extrabold tracking-tight mb-2">Examination Result</h2>
-            <p className="text-muted-foreground uppercase tracking-widest text-[10px] font-black">Level: <span className="text-primary">{level}</span></p>
+            <h2 className="text-5xl font-black tracking-tighter mb-2">
+              {passed ? "Level Mastered" : "Test Failed"}
+            </h2>
+            <p className="text-muted-foreground uppercase tracking-widest text-xs font-black">Examination Grade: <span className="text-primary">Phase {level}</span></p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-6 bg-secondary rounded-2xl border border-border">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Final Score</span>
-              <span className="text-3xl font-extrabold text-primary">{score} / {perfectScore}</span>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="p-8 bg-secondary/50 rounded-3xl border border-border">
+              <span className="text-[10px] font-black text-muted-foreground uppercase block mb-2">Total Score</span>
+              <span className="text-5xl font-black text-primary">{score}</span>
             </div>
-            <div className="p-6 bg-secondary rounded-2xl border border-border">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Accuracy</span>
-              <span className="text-3xl font-extrabold text-primary">{percentage.toFixed(0)}%</span>
+            <div className="p-8 bg-secondary/50 rounded-3xl border border-border text-left">
+              <span className="text-[10px] font-black text-muted-foreground uppercase block mb-2">Status</span>
+              <p className="font-bold leading-tight">
+                {passed 
+                  ? "Next level access granted. Authorization synchronized." 
+                  : `Score ${score}/${perfectScore} is below threshold. Review Academy files.`}
+              </p>
             </div>
           </div>
 
           <button
             onClick={resetQuiz}
-            className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
+            className="w-full py-5 bg-foreground text-background rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-3"
           >
             <RotateCcw className="w-5 h-5" />
-            Finish & Return
+            Return to Directory
           </button>
         </div>
       </motion.div>
@@ -176,142 +249,119 @@ export function Quiz() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-8 lg:py-12">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
+    <div className="max-w-3xl mx-auto py-8">
+      <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center gap-4">
           <button 
             onClick={() => setLevel(null)}
-            className="w-10 h-10 bg-secondary border border-border rounded-xl flex items-center justify-center hover:bg-accent transition-colors"
+            className="w-12 h-12 bg-secondary border border-border rounded-2xl flex items-center justify-center hover:bg-accent transition-colors"
           >
-            <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+            <ChevronLeft className="w-6 h-6 text-muted-foreground" />
           </button>
-          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-            <GraduationCap className="w-6 h-6 text-primary" />
-          </div>
+          <div className="h-10 w-[2px] bg-border mx-2" />
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight underline decoration-primary/30 decoration-4 underline-offset-4">Knowledge Check</h1>
-            <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">Q: {currentIdx + 1} of {filteredQuestions.length} • {level}</p>
+            <h1 className="text-3xl font-black tracking-tight">Active Evaluation</h1>
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-none">Kernel Tier: {level}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-           <div className="text-right">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase block">Current Score</span>
-              <span className="text-lg font-mono font-bold text-primary">{score}</span>
-           </div>
-           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <BrainCircuit className="w-6 h-6 text-primary-foreground" />
+        <div className="text-right">
+           <span className="text-[10px] font-black text-muted-foreground uppercase block mb-1">Session Score</span>
+           <div className="px-4 py-2 bg-primary/10 rounded-xl border border-primary/20 text-xl font-black text-primary">
+              {score}
            </div>
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Progress Bar */}
-        <div className="w-full h-2 bg-secondary rounded-full overflow-hidden border border-border">
+      <div className="space-y-8">
+        <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
           <motion.div 
             className="h-full bg-primary"
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3 }}
           />
         </div>
 
-        {/* Question Card */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIdx}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="bg-card border border-border rounded-3xl p-8 sm:p-10 shadow-sm relative overflow-hidden"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="bg-card border border-border rounded-[2.5rem] p-10 sm:p-12 shadow-sm relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl" />
-            
-            <h2 className="text-xl sm:text-2xl font-bold mb-10 leading-relaxed relative">
+            {question.clue && (
+              <div className="mb-8 p-6 bg-blue-500/10 border border-blue-500/20 rounded-3xl flex gap-4">
+                 <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shrink-0">
+                    <Search className="w-5 h-5 text-white" />
+                 </div>
+                 <div className="space-y-1">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-blue-500">Signal Trace / Clue</p>
+                    <p className="text-sm font-medium text-muted-foreground leading-relaxed">{question.clue}</p>
+                 </div>
+              </div>
+            )}
+
+            <h2 className="text-2xl sm:text-3xl font-black mb-12 leading-none tracking-tight">
               {question.question}
             </h2>
 
             {question.type === 'programming' ? (
-              <div className="space-y-6 relative">
-                 <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-xl text-xs text-muted-foreground">
-                    <Info className="w-4 h-4 text-primary" />
-                    <span>Type your solution in the terminal and click Execute to verify.</span>
+              <div className="space-y-6">
+                 <div className="flex items-center gap-2 p-4 bg-primary/5 border border-primary/20 rounded-2xl text-[11px] font-bold text-muted-foreground italic">
+                    <Info className="w-5 h-5 text-primary" />
+                    Complete the logic below. Matches are case and space insensitive.
                  </div>
                  <Terminal 
                    boilerplate={question.boilerplate || ""} 
                    onRun={handleProgramRun} 
                  />
                  {selectedOption === 99 && (
-                   <motion.div 
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     className={cn(
-                       "p-4 rounded-xl flex items-center gap-3",
-                       isCorrect ? "bg-green-500/10 text-green-600" : "bg-destructive/10 text-destructive"
-                     )}
-                   >
-                     {isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                     <span className="text-sm font-bold">
-                       {isCorrect ? "Correct! Well implemented." : "Not quite. Check your logic and try Execute again."}
-                     </span>
-                   </motion.div>
+                   <div className={cn(
+                     "p-6 rounded-2xl border-2 flex items-center gap-4",
+                     isCorrect ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-destructive/10 border-destructive/20 text-destructive"
+                   )}>
+                     {isCorrect ? <CheckCircle2 className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
+                     <div>
+                       <p className="text-sm font-black uppercase tracking-widest">{isCorrect ? "Unit Test Passed" : "Runtime Error"}</p>
+                       <p className="text-xs font-medium opacity-80">{isCorrect ? "Correct synchronization logic detected." : "Unexpected output. Check your entry/exit sections."}</p>
+                     </div>
+                   </div>
                  )}
               </div>
             ) : (
-              <div className="space-y-4 relative">
-                {question.options.map((option, idx) => {
-                  const isSelected = selectedOption === idx;
-                  const showCorrect = selectedOption !== null && idx === question.answer;
-                  const showWrong = isSelected && !isCorrect;
-
-                  return (
-                    <button
-                      key={idx}
-                      disabled={selectedOption !== null}
-                      onClick={() => handleAnswer(idx)}
-                      className={cn(
-                        "w-full text-left p-5 rounded-2xl border-2 transition-all flex items-center justify-between group",
-                        selectedOption === null 
-                          ? "border-border hover:border-primary/50 hover:bg-accent" 
-                          : showCorrect
-                          ? "border-green-500 bg-green-500/10 text-green-700 dark:text-green-400"
-                          : showWrong
-                          ? "border-destructive bg-destructive/10 text-destructive"
-                          : "border-border opacity-50"
-                      )}
-                    >
-                      <span className="font-semibold">{option}</span>
-                      {showCorrect && <CheckCircle2 className="w-5 h-5" />}
-                      {showWrong && <XCircle className="w-5 h-5" />}
-                    </button>
-                  );
-                })}
+              <div className="grid grid-cols-1 gap-4">
+                {question.options.map((option, idx) => (
+                  <button
+                    key={idx}
+                    disabled={selectedOption !== null}
+                    onClick={() => handleAnswer(idx)}
+                    className={cn(
+                      "w-full text-left p-6 rounded-2xl border-2 transition-all flex items-center justify-between group",
+                      selectedOption === null 
+                        ? "border-border hover:border-primary/50 hover:bg-secondary/50" 
+                        : idx === question.answer
+                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-700"
+                        : selectedOption === idx
+                        ? "border-destructive bg-destructive/10 text-destructive"
+                        : "border-border opacity-40"
+                    )}
+                  >
+                    <span className="font-bold text-lg">{option}</span>
+                    {selectedOption !== null && idx === question.answer && <CheckCircle2 className="w-6 h-6 text-emerald-500" />}
+                    {selectedOption === idx && idx !== question.answer && <XCircle className="w-6 h-6 text-destructive" />}
+                  </button>
+                ))}
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-10">
-              {selectedOption === null && (
-                <button
-                  onClick={skipQuestion}
-                  className="flex-1 py-4 bg-secondary text-secondary-foreground border border-border rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-accent transition-all"
-                >
-                  <FastForward className="w-5 h-5" />
-                  Skip Question
-                </button>
-              )}
-
+            <div className="mt-12 flex justify-end">
               {selectedOption !== null && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex-1"
+                <button
+                  onClick={nextQuestion}
+                  className="px-10 py-5 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-3"
                 >
-                  <button
-                    onClick={nextQuestion}
-                    className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-primary/20"
-                  >
-                    {currentIdx === QUIZ_QUESTIONS.length - 1 ? "Finish Quiz" : "Next Question"}
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                </motion.div>
+                  {currentIdx === filteredQuestions.length - 1 ? "Complete Exam" : "Next Segment"}
+                  <ArrowRight className="w-5 h-5" />
+                </button>
               )}
             </div>
           </motion.div>

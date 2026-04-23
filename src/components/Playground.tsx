@@ -164,11 +164,11 @@ export function Playground() {
           <TerminalIcon className="w-4 h-4" />
           Execution Playground
         </div>
-        <h2 className="text-5xl sm:text-8xl font-black tracking-tighter leading-[0.8] uppercase">
+        <h2 className="page-heading">
           Build Your <br />
-          <span className="text-primary italic tracking-normal lowercase font-serif italic text-6xl sm:text-9xl">Sandbox</span>
+          <span className="text-primary italic">Sandbox</span>
         </h2>
-        <p className="text-xl text-muted-foreground font-medium max-w-2xl leading-relaxed">
+        <p className="text-lg text-muted-foreground font-medium max-w-2xl leading-relaxed">
           The central hub for code experimentation. Choose an algorithm pattern to load its multi-lang boilerplate or start with a clean slate.
         </p>
       </div>
@@ -177,7 +177,7 @@ export function Playground() {
         {categories.map((cat) => (
           <div key={cat.id} className="space-y-12">
             <div className="space-y-2">
-              <h3 className="text-2xl sm:text-4xl font-black tracking-tight uppercase group flex items-center gap-4">
+              <h3 className="uppercase group flex items-center gap-4">
                 <div className="w-2 h-10 bg-primary rounded-full group-hover:h-12 transition-all" />
                 {cat.title}
               </h3>
@@ -210,7 +210,7 @@ export function Playground() {
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary opacity-60">
                       Project Path {i + 1}
                     </span>
-                    <h3 className="text-2xl font-black tracking-tight leading-none group-hover:text-primary transition-colors">
+                    <h3 className="font-black tracking-tight leading-none group-hover:text-primary transition-colors">
                       {algo.title}
                     </h3>
                     <p className="text-sm font-medium text-muted-foreground leading-relaxed">

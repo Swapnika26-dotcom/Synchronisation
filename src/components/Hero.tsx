@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Play, ArrowRight, Shield, Zap, Layers, Terminal, Lock } from 'lucide-react';
+import { Play, ArrowRight, Shield, Zap, Layers, Terminal, Lock, Workflow } from 'lucide-react';
 
 interface HeroProps {
   onStart: () => void;
@@ -42,9 +42,9 @@ export function Hero({ onStart, onExplore }: HeroProps) {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">v2.0 Logic Kernel Ready</span>
             </div>
             
-            <h1 className="text-4xl sm:text-8xl font-black tracking-tight leading-[0.9] text-foreground mb-6 sm:mb-8">
-              Sync <span className="relative inline-block">
-                <span className="relative z-10 text-primary italic">Better</span>
+            <h1 className="mb-6 sm:mb-8 text-foreground uppercase page-heading">
+              Sync <span className="relative inline-block text-primary">
+                Better
                 <motion.span 
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
@@ -52,10 +52,10 @@ export function Hero({ onStart, onExplore }: HeroProps) {
                   className="absolute bottom-2 sm:bottom-4 left-0 h-2 sm:h-4 bg-primary/20 -rotate-1" 
                 />
               </span> <br />
-              Master <span className="font-light">Concurrency</span>
+              Master Concurrency
             </h1>
 
-            <p className="mt-6 sm:mt-10 text-base sm:text-2xl leading-relaxed text-muted-foreground font-medium max-w-2xl mx-auto">
+            <p className="mt-6 sm:mt-10 text-base sm:text-xl leading-relaxed text-muted-foreground font-medium max-w-2xl mx-auto">
               A high-fidelity visual laboratory for exploring how Operating Systems manage 
               <span className="text-foreground"> race conditions</span>, 
               <span className="text-foreground"> semaphores</span>, and 
@@ -104,8 +104,8 @@ export function Hero({ onStart, onExplore }: HeroProps) {
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-8">
                 <Zap className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-3xl font-black mb-4">Atomic Visual Kernel</h3>
-              <p className="text-muted-foreground text-lg max-w-xl">
+              <h3 className="mb-4">Atomic Visual Kernel</h3>
+              <p className="text-muted-foreground max-w-xl">
                 Watch process execution instruction-by-instruction. Understand how context switching leads to data inconsistency without proper locking.
               </p>
             </div>
@@ -125,7 +125,7 @@ export function Hero({ onStart, onExplore }: HeroProps) {
                    <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                   <h3 className="text-2xl font-black mb-3">Mutual Exclusion</h3>
+                   <h3 className="mb-3 text-white">Mutual Exclusion</h3>
                    <p className="text-primary-foreground/80 font-medium">
                      Guaranteed safety for your shared state through automated monitor constructs.
                    </p>
@@ -137,5 +137,3 @@ export function Hero({ onStart, onExplore }: HeroProps) {
     </div>
   );
 }
-
-import { Workflow } from 'lucide-react';
